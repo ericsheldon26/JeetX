@@ -164,7 +164,6 @@ class AdminQuestionSetController {
         try {
             const { id } = req.params;
             const { status } = req.body;
-
             // Check if set is being used in any active tournament
             const checkQuery = `
                 SELECT COUNT(*) FROM tournament_slots 

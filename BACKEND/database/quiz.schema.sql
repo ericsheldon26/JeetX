@@ -10,28 +10,20 @@ DROP TABLE IF EXISTS terms_acceptance_logs CASCADE;
 
 DROP TABLE IF EXISTS practice_mode_config CASCADE;
 
-DROP TABLE IF EXISTS quiz_categories CASCADE;
+DROP TABLE IF EXISTS games CASCADE;
 
 DROP TABLE IF EXISTS quiz_sub_categories CASCADE;
 
 -- Migration 1: Create quiz_categories table
--- CREATE TABLE IF NOT EXISTS quiz_categories (
---     id UUID PRIMARY KEY DEFAULT gen_random_uuid (),
---     name VARCHAR(255) NOT NULL,
---     description TEXT,
---     icon_url VARCHAR(500),
---     display_order INTEGER DEFAULT 0,
---     status VARCHAR(20) DEFAULT 'ACTIVE' CHECK (
---         status IN ('ACTIVE', 'INACTIVE')
---     ),
---     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
---     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
--- );
+CREATE TABLE IF NOT EXISTS games (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid (),
+    name VARCHAR(255) NOT NULL
+);
 
 -- Migration 2: Create quiz_sub_categories table
 CREATE TABLE IF NOT EXISTS quiz_sub_categories (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid (),
-    -- category_id UUID NOT NULL REFERENCES quiz_categories (id) ON DELETE CASCADE,
+    game_id UUID REFERENCES games (id) ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL,
     description TEXT,
     icon_url VARCHAR(500),
@@ -52,6 +44,7 @@ CREATE TABLE IF NOT EXISTS quiz_questions (
     option_b TEXT NOT NULL,
     option_c TEXT NOT NULL,
     option_d TEXT NOT NULL,
+    icon_url VARCHAR(500),
     correct_option VARCHAR(1) NOT NULL CHECK (
         correct_option IN ('A', 'B', 'C', 'D')
     ),
@@ -248,61 +241,89 @@ CREATE INDEX IF NOT EXISTS idx_terms_logs_context ON terms_acceptance_logs (cont
 -- ============================================================================
 
 -- Seed sample categories
+
+INSERT INTO
+    games (name)
+VALUES ('Quiz'),
+    ('Puzzle'),
+    ('Chess'),
+    ('Ludo'),
+    ON CONFLICT DO NOTHING;
+
+DO $$
+DECLARE
+    quiz_id UUID;
+
+    BEGIN
+    -- Get category IDs
+    SELECT id INTO quiz_id FROM games WHERE name = 'Quiz' LIMIT 1
+     IF quiz_id IS NOT NULL THEN
 INSERT INTO
     quiz_sub_categories (
+        game_id.
         name,
         description,
         icon_url,
         display_order
     )
 VALUES (
+        quiz_id,
         'General Knowledge',
         'Test your general knowledge',
         'https://example.com/icons/gk.png',
         1
     ),
     (
+        quiz_id,
         'World Geography',
         'Questions about world geography',
         'https://example.com/icons/geography.png',
         2
     ),
     (
+        quiz_id
         'History',
         'Historical events and facts',
         'https://example.com/icons/history.png',
         3
     ),
     (
+        quiz_id
         'Mathematics',
         'Math quizzes and puzzles',
         'https://example.com/icons/math.png',
         4
     ),
     (
+        quiz_id
         'Arithmetic',
         'Basic arithmetic problems',
         'https://example.com/icons/arithmetic.png',
         5
     ),
     (
+        quiz_id
         'Science',
         'Science related quizzes',
         'https://example.com/icons/science.png',
         6
     ),
     (
+        quiz_id
         'Sports',
         'Sports trivia and facts',
         'https://example.com/icons/sports.png',
         7
     ),
     (
+        quiz_id
         'Current Affairs',
         'Latest news and events',
         'https://example.com/icons/news.png',
         8
-    ) ON CONFLICT DO NOTHING;
+    )
+        END IF;
+     ON CONFLICT DO NOTHING;
 
 -- Apply updated_at trigger to all tables
 

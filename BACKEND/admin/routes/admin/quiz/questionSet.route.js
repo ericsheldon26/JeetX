@@ -87,7 +87,7 @@ setRouter.put(
  * @access  Admin
  */
 setRouter.put(
-    '/:id',
+    '/:id/status',
     [
         param('id').isUUID(),
         body('status').isIn(['ACTIVE', 'INACTIVE']),

@@ -200,10 +200,10 @@ router.put(
  */
 router.post(
     '/bulk',
-    [
-        body('questions').isArray({ min: 1 }),
-    ],
-    validate,
+    // [
+    //     body('questions').isArray({ min: 1 }),
+    // ],
+    // validate,
     adminQuestionController.bulkImport
 );
 
