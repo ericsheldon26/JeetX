@@ -44,13 +44,18 @@ class QuestionModel {
     }
 
     async create(questionData) {
-        const query = `
-            INSERT INTO quiz_questions (
-                sub_category_id, question_text, option_a, option_b, option_c, option_d,
-                correct_option, difficulty, created_by
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-            RETURNING *
-        `;
+        const columns = [
+            "sub_category_id",
+            "question_text",
+            "option_a",
+            "option_b",
+            "option_c",
+            "option_d",
+            "correct_option",
+            "difficulty",
+            "created_by"
+        ];
+
         const values = [
             questionData.sub_category_id,
             questionData.question_text,
@@ -62,6 +67,21 @@ class QuestionModel {
             questionData.difficulty,
             questionData.created_by
         ];
+
+        // Conditionally add icon_url
+        if (questionData.icon_url) {
+            columns.push("icon_url");
+            values.push(questionData.icon_url);
+        }
+
+        // Generate placeholders dynamically
+        const placeholders = values.map((_, i) => `$${i + 1}`).join(", ");
+
+        const query = `
+          INSERT INTO quiz_questions (${columns.join(", ")})
+          VALUES (${placeholders})
+          RETURNING *
+        `;
         const result = await db.query(query, values);
         return result.rows[0];
     }
@@ -69,9 +89,10 @@ class QuestionModel {
     async update(id, questionData) {
         const query = `
             UPDATE quiz_questions 
-            SET question_text = $1, option_a = $2, option_b = $3, option_c = $4,
-                option_d = $5, correct_option = $6, difficulty = $7, updated_at = NOW()
-            WHERE id = $8
+            SET
+            question_text = $1, option_a = $2, option_b = $3, option_c = $4,
+                option_d = $5, correct_option = $6, difficulty = $7,icon_url = COALESCE($8, icon_url), updated_at = NOW()
+            WHERE id = $9
             RETURNING *
         `;
         const values = [
@@ -82,6 +103,7 @@ class QuestionModel {
             questionData.option_d,
             questionData.correct_option,
             questionData.difficulty,
+            questionData.icon_url || null,
             id
         ];
         const result = await db.query(query, values);
