@@ -25,11 +25,13 @@ async function runMigrations() {
 
         const quizSchemaPath = path.join(__dirname, 'quiz.schema.sql');
         const walletSchemaPath = path.join(__dirname, 'wallet.schema.sql');
+        const leaderboardSchemaPath = path.join(__dirname, 'leaderboard.schema.sql');
 
         const schemaArrays = [
             // schemaPath,
             // walletSchemaPath,
-            quizSchemaPath
+            quizSchemaPath,
+            leaderboardSchemaPath
         ]
 
         for (const schemaFilePath of schemaArrays) {

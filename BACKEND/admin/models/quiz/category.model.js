@@ -183,12 +183,23 @@ class CategoryModel {
      * Create subCategory (Admin)
      */
     async create(subCategoryData) {
+        const gameResult = await db.query(
+            `SELECT id FROM games WHERE name = $1 LIMIT 1`,
+            ['Quiz']
+        );
+
+        if (gameResult.rows.length === 0) {
+            throw new Error("Game 'Quiz' not found");
+        }
+
+        const quiz_id = gameResult.rows[0].id;
         const query = `
-            INSERT INTO quiz_sub_categories (name, description, icon_url, display_order)
-            VALUES ($1, $2, $3, $4)
+            INSERT INTO quiz_sub_categories (game_id,name, description, icon_url, display_order)
+            VALUES ($1, $2, $3, $4,$5)
             RETURNING *
         `;
         const values = [
+            quiz_id,
             subCategoryData.name,
             subCategoryData.description,
             subCategoryData.icon_url,

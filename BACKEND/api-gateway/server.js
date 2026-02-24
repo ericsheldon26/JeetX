@@ -94,6 +94,16 @@ app.use(
         // },
     })
 );
+app.use(
+    '/api/v1/leaderboard',
+    createProxyMiddleware({
+        target: `http://localhost:${process.env.LEADERBOARD_PORT}/api/v1/leaderboard/`,
+        changeOrigin: true,
+        // pathRewrite: {
+        //     '^/admin/api/v1/referral': '',
+        // },
+    })
+);
 
 app.listen(process.env.PORT, () => {
     console.log(`🚀 API Gateway running on port ${process.env.PORT}`);

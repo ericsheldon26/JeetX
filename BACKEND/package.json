@@ -22,6 +22,7 @@
     "install-notifications": "npm install --prefix notifications",
     "install-wallet": "npm install --prefix wallet",
     "install-referral": "npm install --prefix referral",
+    "install-leaderboards": "npm install --prefix leaderboards",
     "admin": "npm run start --prefix admin",
     "auth": "npm run start --prefix auth",
     "quiz": "npm run start --prefix quiz",
@@ -29,8 +30,9 @@
     "notifications": "npm run start --prefix notifications",
     "wallet": "npm run start --prefix wallet",
     "referral": "npm run start --prefix referral",
-    "install:all": "concurrently \"npm run install-admin\" \"npm run install-auth\" \"npm run install-quiz\" \"npm run install-user\" \"npm run install-notifications\" \"npm run install-wallet\" \"npm run install-referral\"",
-    "start:all": "concurrently \"npm run admin\" \"npm run auth\" \"npm run quiz\" \"npm run user\" \"npm run notifications\" \"npm run wallet\" \"npm run referral\""
+    "leaderboards": "npm run start --prefix leaderboards",
+    "install:all": "concurrently \"npm run install-admin\" \"npm run install-auth\" \"npm run install-quiz\" \"npm run install-user\" \"npm run install-notifications\" \"npm run install-wallet\" \"npm run install-referral\" \"npm run install-leaderboards\"",
+    "start:all": "concurrently \"npm run admin\" \"npm run auth\" \"npm run quiz\" \"npm run user\" \"npm run notifications\" \"npm run wallet\" \"npm run referral\" \"npm run leaderboards\""
   },
   "keywords": [
     "authentication",

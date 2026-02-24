@@ -19,7 +19,6 @@ initializeConfig()
     })
     .catch((error) => {
         logger.error('Failed to initialize:', error);
-        notificationScheduler.stopAll();
 
         process.exit(1);
     });

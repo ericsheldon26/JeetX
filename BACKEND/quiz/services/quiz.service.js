@@ -5,6 +5,7 @@ const quizSessionModel = require('@/models/quiz/session.model');
 const practiceConfigModel = require('@/models/quiz/practiceConfig.model');
 const walletService = require('@/services/wallet.service');
 const notificationService = require('@/services/notification.service');
+const leaderboardService = require('@/services/leaderboard.service');
 const logger = require('@/utils/logger');
 const db = require('@/config/database');
 const { GetUnSignedUrl } = require("@/services/storage/storage.services");
@@ -155,6 +156,16 @@ class QuizService {
      */
     async submitPractice(userId, sessionId, answers, completionTime) {
         try {
+            const gameResult = await db.query(
+                `SELECT id FROM games WHERE name = $1 LIMIT 1`,
+                ['Quiz']
+            );
+
+            if (gameResult.rows.length === 0) {
+                throw new Error("Game 'Quiz' not found");
+            }
+
+            const quiz_id = gameResult.rows[0].id;
             const session = await quizSessionModel.findById(sessionId);
 
             if (!session) {
@@ -196,6 +207,16 @@ class QuizService {
                 refundCoins,
                 entryCoins: session.entry_coins
             });
+
+            // await leaderboardService.recordMatchResult({
+            //     user_id: userId,
+            //     category_id: quiz_id,
+            //     match_type: "PRACTICE",
+            //     match_id: sessionId,
+            //     points_earned: scorePercentage,
+            //     coins_won: refundCoins,
+            //     is_winner: refundCoins > 0 ? true : false,
+            // })
 
             return {
                 score: scoreData.correct_answers,
@@ -405,6 +426,16 @@ class QuizService {
      */
     async finalizeTournament(slotId) {
         try {
+            const gameResult = await db.query(
+                `SELECT id FROM games WHERE name = $1 LIMIT 1`,
+                ['Quiz']
+            );
+
+            if (gameResult.rows.length === 0) {
+                throw new Error("Game 'Quiz' not found");
+            }
+
+            const quiz_id = gameResult.rows[0].id;
             const slot = await tournamentSlotModel.findById(slotId);
 
             if (slot.status !== 'SCHEDULED' && slot.status !== 'ACTIVE') {
@@ -442,7 +473,16 @@ class QuizService {
                         { slot_id: slotId, rank }
                     );
                 }
-
+                await leaderboardService.recordMatchResult({
+                    user_id: session.user_id,
+                    category_id: quiz_id,
+                    match_type: "TOURNAMENT",
+                    match_id: session.id,
+                    points_earned: session?.final_score,
+                    rank,
+                    coins_won: coinsWon,
+                    is_winner: rank == 1 ? true : false,
+                })
                 results.push({
                     user_id: session.user_id,
                     full_name: session.full_name,
