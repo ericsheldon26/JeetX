@@ -120,7 +120,26 @@ export const quizApi = {
         option_d: string;
         correct_option: 'A' | 'B' | 'C' | 'D';
         difficulty: 'EASY' | 'MEDIUM' | 'HARD';
-    }) => adminApi.post('/admin/api/v1/quiz/questions', data),
+        attachment?: File;
+    }) => {
+        const formData = new FormData();
+        formData.append('sub_category_id', data.sub_category_id);
+        formData.append('question_text', data.question_text);
+        formData.append('option_a', data.option_a);
+        formData.append('option_b', data.option_b);
+        formData.append('option_c', data.option_c);
+        formData.append('option_d', data.option_d);
+        formData.append('correct_option', data.correct_option);
+        formData.append('difficulty', data.difficulty);
+        if (data.attachment) {
+            formData.append('attachment', data.attachment);
+        }
+        return adminApi.post('/admin/api/v1/quiz/questions', formData, {
+            headers: {
+                'Content-Type': undefined, // Let browser set multipart/form-data with boundary
+            } as any, // Cast to avoid TS error if strict types don't allow undefined
+        });
+    },
     listQuestions: (params?: {
         sub_category_id?: string;
         difficulty?: 'EASY' | 'MEDIUM' | 'HARD';
@@ -129,7 +148,29 @@ export const quizApi = {
         offset?: number;
     }) => adminApi.get('/admin/api/v1/quiz/questions', { params }),
     getQuestionDetail: (id: string) => adminApi.get(`/admin/api/v1/quiz/questions/${id}`),
-    updateQuestion: (id: string, data: any) => adminApi.put(`/admin/api/v1/quiz/questions/${id}`, data),
+    updateQuestion: (id: string, data: any) => {
+        const formData = new FormData();
+        // Append all standard fields
+        if (data.sub_category_id) formData.append('sub_category_id', data.sub_category_id);
+        if (data.question_text) formData.append('question_text', data.question_text);
+        if (data.option_a) formData.append('option_a', data.option_a);
+        if (data.option_b) formData.append('option_b', data.option_b);
+        if (data.option_c) formData.append('option_c', data.option_c);
+        if (data.option_d) formData.append('option_d', data.option_d);
+        if (data.correct_option) formData.append('correct_option', data.correct_option);
+        if (data.difficulty) formData.append('difficulty', data.difficulty);
+
+        // Handle attachment specifically
+        if (data.attachment) {
+            formData.append('attachment', data.attachment);
+        }
+
+        return adminApi.put(`/admin/api/v1/quiz/questions/${id}`, formData, {
+            headers: {
+                'Content-Type': undefined,
+            } as any,
+        });
+    },
     updateQuestionStatus: (id: string, status: 'ACTIVE' | 'INACTIVE') =>
         adminApi.put(`/admin/api/v1/quiz/questions/${id}/status`, { status }),
     getQuestionStats: (sub_category_id?: string) => {
@@ -137,6 +178,15 @@ export const quizApi = {
         return adminApi.get('/admin/api/v1/quiz/questions/stats', { params });
     },
     getCategoryStats: () => adminApi.get('/admin/api/v1/quiz/categories/stats'),
+    bulkUploadQuestions: (file: File) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        return adminApi.post('/admin/api/v1/quiz/questions/bulk', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+    },
     createQuestionSet: (data: any) => adminApi.post('/admin/api/v1/quiz/question-sets', data),
     listQuestionSets: (params?: {
         sub_category_id?: string;
@@ -147,6 +197,8 @@ export const quizApi = {
     getQuestionSetDetail: (id: string) => adminApi.get(`/admin/api/v1/quiz/question-sets/${id}`),
     updateQuestionSet: (id: string, data: any) => adminApi.put(`/admin/api/v1/quiz/question-sets/${id}`, data),
     deleteQuestionSet: (id: string) => adminApi.delete(`/admin/api/v1/quiz/question-sets/${id}`),
+    updateQuestionSetStatus: (id: string, status: 'ACTIVE' | 'INACTIVE') =>
+        adminApi.put(`/admin/api/v1/quiz/question-sets/${id}/status`, { status }),
     getPracticeConfig: (sub_category_id?: string) =>
         adminApi.get('/admin/api/v1/quiz/practice-config', { params: { sub_category_id } }),
     createPracticeConfig: (data: any) => adminApi.post('/admin/api/v1/quiz/practice-config', data),

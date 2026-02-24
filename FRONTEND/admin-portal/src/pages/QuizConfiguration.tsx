@@ -593,7 +593,7 @@ By joining, you agree to these rules.`,
                                             onChange={(e) => setFilterSubCategory(e.target.value)}
                                             style={{ padding: '0.5rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'rgba(255,255,255,0.05)', color: 'white', maxWidth: '200px' }}
                                         >
-                                            <option value="">All Categories</option>
+                                            <option value="">All Sub Categories</option>
                                             {allSubCategories.map(sub => (
                                                 <option key={sub.id} value={sub.id}>{sub.name}</option>
                                             ))}
@@ -655,22 +655,23 @@ By joining, you agree to these rules.`,
                                     </div>
                                 </div>
 
-                                <div className="table-container" style={{ background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px solid var(--border-color)', overflow: 'hidden' }}>
+                                <div className="table-container" style={{ background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px solid var(--border-color)', overflowX: 'auto' }}>
                                     <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                                         <thead>
                                             <tr style={{ borderBottom: '1px solid var(--border-color)', background: 'rgba(255,255,255,0.02)' }}>
                                                 <th style={{ padding: '1rem', fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-muted)' }}>Slot Name</th>
-                                                <th style={{ padding: '1rem', fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-muted)' }}>Category</th>
+                                                <th style={{ padding: '1rem', fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-muted)' }}>Sub Category</th>
                                                 <th style={{ padding: '1rem', fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-muted)' }}>Entry / Fee</th>
                                                 <th style={{ padding: '1rem', fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-muted)' }}>Start Time</th>
                                                 <th style={{ padding: '1rem', fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-muted)' }}>Status</th>
                                                 <th style={{ padding: '1rem', fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-muted)' }}>Players</th>
+                                                <th style={{ padding: '1rem', fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-muted)' }}>Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {tournamentsList.length === 0 ? (
                                                 <tr>
-                                                    <td colSpan={6} style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+                                                    <td colSpan={7} style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
                                                         No tournaments found. Create one above.
                                                     </td>
                                                 </tr>
@@ -702,6 +703,21 @@ By joining, you agree to these rules.`,
                                                         </td>
                                                         <td style={{ padding: '1rem' }}>
                                                             {t.current_players || 0} / {t.max_players}
+                                                        </td>
+                                                        <td style={{ padding: '1rem' }}>
+                                                            {(!t.status || t.status === 'SCHEDULED' || t.status === 'ACTIVE') && (
+                                                                <button
+                                                                    className="btn-icon danger"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        handleCancelTournament(t.id);
+                                                                    }}
+                                                                    title="Cancel Tournament"
+                                                                    style={{ color: '#ef4444', padding: '0.5rem', background: 'none', border: 'none', cursor: 'pointer', zIndex: 10, position: 'relative' }}
+                                                                >
+                                                                    <XCircle size={18} />
+                                                                </button>
+                                                            )}
                                                         </td>
                                                     </tr>
                                                 ))
@@ -736,14 +752,14 @@ By joining, you agree to these rules.`,
 
                                 <div className="form-grid">
                                     <div className="form-group full-width">
-                                        <label>Select Category</label>
+                                        <label>Sub Category</label>
                                         <select
                                             value={tournamentConfig.sub_category_id}
                                             onChange={e => setTournamentConfig({ ...tournamentConfig, sub_category_id: e.target.value })}
                                             required
                                             style={{ padding: '0.75rem', fontSize: '1rem', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white' }}
                                         >
-                                            <option value="" disabled>Select category</option>
+                                            <option value="" disabled>Select Sub Category</option>
                                             {allSubCategories.map(sub => (
                                                 <option key={sub.id} value={sub.id}>
                                                     {sub.name}
@@ -1054,7 +1070,7 @@ By joining, you agree to these rules.`,
 
                                 <div className="form-grid">
                                     <div className="form-group full-width">
-                                        <label>Select Category</label>
+                                        <label>Sub Category</label>
                                         <select
                                             value={practiceConfigs.sub_category_id}
                                             onChange={e => setPracticeConfig({ ...practiceConfigs, sub_category_id: e.target.value })}

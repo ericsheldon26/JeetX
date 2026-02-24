@@ -57,37 +57,20 @@ const RotatingLogo = ({ focused }: { focused: boolean }) => {
     const spinValue = React.useRef(new Animated.Value(0)).current;
 
     React.useEffect(() => {
-        let animation: Animated.CompositeAnimation;
-
-        if (focused) {
-            // Sequence: Rotate 360 (1s) -> Wait (3s) -> Repeat
-            animation = Animated.loop(
-                Animated.sequence([
-                    Animated.timing(spinValue, {
-                        toValue: 1,
-                        duration: 6000, // 1 second for full rotation
-                        easing: Easing.linear,
-                        useNativeDriver: true,
-                    }),
-                    Animated.delay(3000), // Wait for 3 seconds
-                    Animated.timing(spinValue, {
-                        toValue: 0,
-                        duration: 0, // Reset instantly
-                        useNativeDriver: true,
-                    })
-                ])
-            );
-            animation.start();
-        } else {
-            spinValue.setValue(0);
-        }
+        const animation = Animated.loop(
+            Animated.timing(spinValue, {
+                toValue: 1,
+                duration: 10000,
+                easing: Easing.linear,
+                useNativeDriver: true,
+            })
+        );
+        animation.start();
 
         return () => {
-            if (animation) {
-                animation.stop();
-            }
+            animation.stop();
         };
-    }, [focused, spinValue]);
+    }, [spinValue]);
 
     const spin = spinValue.interpolate({
         inputRange: [0, 1],

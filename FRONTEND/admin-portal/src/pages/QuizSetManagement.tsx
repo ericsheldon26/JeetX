@@ -13,7 +13,8 @@ import {
     Filter,
     Pencil,
     Trash2,
-    X
+    X,
+    Power
 } from 'lucide-react';
 import { quizApi } from '../api/adminApi';
 
@@ -53,6 +54,7 @@ interface QuizSet {
     fixed_question_ids: string[];
     questions?: Question[];
     created_at: string;
+    status: 'ACTIVE' | 'INACTIVE';
 }
 
 const QuizSetManagement: React.FC = () => {
@@ -117,7 +119,7 @@ const QuizSetManagement: React.FC = () => {
         try {
             const response = await quizApi.getCategories();
             if (response.data.success) {
-                setCategories(response.data.data);
+                setCategories(response.data.data || []);
             }
         } catch (error) {
             console.error('Failed to fetch categories:', error);
@@ -133,7 +135,7 @@ const QuizSetManagement: React.FC = () => {
             console.log('📡 Fetching Quiz Sets with Payload:', cleanFilters);
             const response = await quizApi.listQuestionSets(cleanFilters);
             if (response.data.success) {
-                setQuizSets(response.data.data);
+                setQuizSets(response.data.data || []);
             }
         } catch (error) {
             console.error('Failed to fetch quiz sets:', error);
@@ -155,7 +157,7 @@ const QuizSetManagement: React.FC = () => {
                 status: 'ACTIVE'
             });
             if (response.data.success) {
-                setAvailableQuestions(response.data.data);
+                setAvailableQuestions(response.data.data || []);
             }
         } catch (error) {
             console.error('Failed to fetch questions:', error);
@@ -325,6 +327,23 @@ const QuizSetManagement: React.FC = () => {
         }
     };
 
+    const handleStatusToggle = async (id: string, currentStatus: string) => {
+        const newStatus = currentStatus === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
+        if (!window.confirm(`Are you sure you want to make this set ${newStatus}?`)) return;
+
+        try {
+            const response = await quizApi.updateQuestionSetStatus(id, newStatus);
+            if (response.data.success) {
+                setQuizSets(prev => prev.map(s => s.id === id ? { ...s, status: newStatus } : s));
+            } else {
+                alert(`Error: ${response.data.message || 'Failed to update status'}`);
+            }
+        } catch (error: any) {
+            console.error('Failed to update status:', error);
+            alert(`Error: ${error.response?.data?.message || error.message}`);
+        }
+    };
+
     const handleCreateCategory = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
@@ -407,13 +426,13 @@ const QuizSetManagement: React.FC = () => {
                     <div className="card" style={{ padding: '1.25rem' }}>
                         <div className="form-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', alignItems: 'flex-end' }}>
                             <div className="form-group" style={{ marginBottom: 0 }}>
-                                <label style={{ fontSize: '0.8rem' }}><Filter size={12} /> Category</label>
+                                <label style={{ fontSize: '0.8rem' }}><Filter size={12} /> Sub Category</label>
                                 <select
                                     value={filters.sub_category_id}
                                     onChange={e => setFilters({ ...filters, sub_category_id: e.target.value })}
                                     style={{ padding: '0.5rem', height: '42px' }}
                                 >
-                                    <option value="">All Categories</option>
+                                    <option value="">All Sub Categories</option>
                                     {categories.length > 0 ? (
                                         categories.map(cat => (
                                             <option key={cat.id} value={cat.id}>
@@ -460,9 +479,20 @@ const QuizSetManagement: React.FC = () => {
                                                 </span>
                                                 {set.is_randomized && <span className="badge medium">Randomized</span>}
                                             </div>
-                                            <h3 className="question-card-text">{set.name}</h3>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                <h3 className="question-card-text">{set.name}</h3>
+                                                <span className={`status-dot ${(set.status || 'ACTIVE') === 'ACTIVE' ? 'active' : 'inactive'}`} title={set.status || 'ACTIVE'}></span>
+                                            </div>
                                         </div>
                                         <div className="card-actions-corner" onClick={e => e.stopPropagation()} style={{ display: 'flex', gap: '0.5rem' }}>
+                                            <button
+                                                className={`btn-status-toggle ${(set.status || 'ACTIVE') === 'ACTIVE' ? 'active' : 'inactive'}`}
+                                                title={(set.status || 'ACTIVE') === 'ACTIVE' ? 'Deactivate Set' : 'Activate Set'}
+                                                onClick={(e) => { e.stopPropagation(); handleStatusToggle(set.id, set.status || 'ACTIVE'); }}
+                                                style={{ padding: '0.5rem', borderRadius: '8px', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                            >
+                                                <Power size={16} />
+                                            </button>
                                             <button
                                                 className="btn-pencil"
                                                 title="Edit Set"
@@ -552,13 +582,13 @@ const QuizSetManagement: React.FC = () => {
                         </div>
 
                         <div className="form-group">
-                            <label>Category</label>
+                            <label>Sub Category</label>
                             <select
                                 value={formData.sub_category_id}
                                 onChange={handleCategoryChange}
                                 required
                             >
-                                <option value="">Select Category...</option>
+                                <option value="">Select Sub Category...</option>
                                 {categories.length > 0 ? (
                                     categories.map(cat => (
                                         <option key={cat.id} value={cat.id}>{cat.name}</option>

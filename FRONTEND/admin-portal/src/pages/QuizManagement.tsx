@@ -12,6 +12,7 @@ import {
     X,
     Pencil,
     Power,
+    UploadCloud,
 } from 'lucide-react';
 import { quizApi } from '../api/adminApi';
 
@@ -41,6 +42,7 @@ interface Question {
     difficulty: 'EASY' | 'MEDIUM' | 'HARD';
     status: 'ACTIVE' | 'INACTIVE';
     created_at: string;
+    image_path?: string;
 }
 
 interface Stats {
@@ -87,7 +89,9 @@ const QuizManagement: React.FC = () => {
         option_c: '',
         option_d: '',
         correct_option: 'A' as 'A' | 'B' | 'C' | 'D',
-        difficulty: 'MEDIUM' as 'EASY' | 'MEDIUM' | 'HARD'
+        difficulty: 'MEDIUM' as 'EASY' | 'MEDIUM' | 'HARD',
+        attachment: null as File | null,
+        existing_image_url: null as string | null
     });
 
     useEffect(() => {
@@ -121,8 +125,8 @@ const QuizManagement: React.FC = () => {
         try {
             const response = await quizApi.getCategories();
             if (response.data.success) {
-                console.log('✅ Categories fetched:', response.data.data.length);
-                setCategories(response.data.data);
+                console.log('✅ Categories fetched:', (response.data.data || []).length);
+                setCategories(response.data.data || []);
             }
         } catch (error) {
             console.error('Failed to fetch categories:', error);
@@ -133,7 +137,7 @@ const QuizManagement: React.FC = () => {
         try {
             const response = await quizApi.getQuestionStats(subCatId);
             if (response.data.success) {
-                const data = response.data.data;
+                const data = response.data.data || {};
                 // Map the flat API response to our potentially nested Stats structure
                 // API: { total: "15", active: "15", inactive: "0", easy: "15", medium: "0", hard: "0" }
                 // Stats: { total_questions, active_questions, inactive_questions, by_difficulty: { EASY, MEDIUM, HARD } }
@@ -164,7 +168,7 @@ const QuizManagement: React.FC = () => {
             console.log('📡 API Response:', response.data);
 
             if (response.data.success) {
-                setQuestions(response.data.data);
+                setQuestions(response.data.data || []);
                 // if (response.data.pagination) {
                 //    setPagination(response.data.pagination);
                 // }
@@ -186,7 +190,9 @@ const QuizManagement: React.FC = () => {
             option_c: q.option_c,
             option_d: q.option_d,
             correct_option: q.correct_option as any,
-            difficulty: q.difficulty
+            difficulty: q.difficulty,
+            attachment: null,
+            existing_image_url: q.image_path || null
         });
         setViewMode('EDIT');
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -202,7 +208,9 @@ const QuizManagement: React.FC = () => {
             option_c: '',
             option_d: '',
             correct_option: 'A',
-            difficulty: 'MEDIUM'
+            difficulty: 'MEDIUM',
+            attachment: null,
+            existing_image_url: null
         });
         setViewMode('LIST');
     };
@@ -234,7 +242,14 @@ const QuizManagement: React.FC = () => {
             if (viewMode === 'EDIT' && editingId) {
                 response = await quizApi.updateQuestion(editingId, formData);
             } else {
-                response = await quizApi.createQuestion(formData);
+                const payload = {
+                    ...formData,
+                    attachment: formData.attachment || undefined
+                };
+                // Remove existing_image_url from payload as createQuestion doesn't expect it
+                delete (payload as any).existing_image_url;
+
+                response = await quizApi.createQuestion(payload);
             }
 
             if (response.data.success) {
@@ -249,6 +264,8 @@ const QuizManagement: React.FC = () => {
                     option_d: '',
                     correct_option: 'A',
                     difficulty: 'MEDIUM',
+                    attachment: null,
+                    existing_image_url: null
                 });
                 fetchQuestions();
                 fetchStats(filters.sub_category_id);
@@ -259,6 +276,33 @@ const QuizManagement: React.FC = () => {
             alert(`Error: ${error.response?.data?.message || error.message}`);
         } finally {
             setIsSubmitting(false);
+        }
+    };
+
+    const handleBulkUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            if (file.type !== 'text/csv' && !file.name.endsWith('.csv')) {
+                alert('Please upload a valid CSV file.');
+                return;
+            }
+
+            setLoading(true);
+            try {
+                const response = await quizApi.bulkUploadQuestions(file);
+                if (response.data.success) {
+                    alert(`Bulk upload successful! Processed ${response.data.processed || 0} questions.`);
+                    fetchQuestions();
+                    fetchStats(filters.sub_category_id);
+                }
+            } catch (error: any) {
+                console.error('Bulk upload failed:', error);
+                alert(`Bulk upload failed: ${error.response?.data?.message || error.message}`);
+            } finally {
+                setLoading(false);
+                // Reset file input
+                e.target.value = '';
+            }
         }
     };
 
@@ -287,7 +331,25 @@ const QuizManagement: React.FC = () => {
                             {viewMode === 'EDIT' ? 'Update the details of the existing question.' : 'Manage questions, view statistics and create new challenges.'}
                         </p>
                     </div>
-                    <div style={{ display: 'flex', gap: '1rem' }}>
+                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                        <div style={{ position: 'relative' }}>
+                            <input
+                                type="file"
+                                id="bulk-upload"
+                                accept=".csv"
+                                style={{ display: 'none' }}
+                                onChange={handleBulkUpload}
+                            />
+                            <label
+                                htmlFor="bulk-upload"
+                                className="btn-secondary"
+                                style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', height: '100%' }}
+                            >
+                                {loading && <Loader2 className="animate-spin" size={16} />}
+                                {!loading && <UploadCloud size={16} />}
+                                <span>Bulk Upload</span>
+                            </label>
+                        </div>
                         <button
                             className={viewMode === 'LIST' ? 'btn-primary' : 'btn-secondary'}
                             onClick={() => { setViewMode('LIST'); setEditingId(null); }}
@@ -308,7 +370,9 @@ const QuizManagement: React.FC = () => {
                                     option_c: '',
                                     option_d: '',
                                     correct_option: 'A',
-                                    difficulty: 'MEDIUM'
+                                    difficulty: 'MEDIUM',
+                                    attachment: null,
+                                    existing_image_url: null
                                 });
                             }}
                         >
@@ -392,13 +456,13 @@ const QuizManagement: React.FC = () => {
                         <div className="card" style={{ marginBottom: '1.5rem', padding: '1.25rem' }}>
                             <div className="form-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', alignItems: 'flex-end' }}>
                                 <div className="form-group" style={{ marginBottom: 0 }}>
-                                    <label style={{ fontSize: '0.8rem' }}><Filter size={12} /> Category</label>
+                                    <label style={{ fontSize: '0.8rem' }}><Filter size={12} /> Sub Category</label>
                                     <select
                                         value={filters.sub_category_id}
                                         onChange={e => setFilters({ ...filters, sub_category_id: e.target.value })}
                                         style={{ padding: '0.5rem', height: '42px' }}
                                     >
-                                        <option value="">All Categories</option>
+                                        <option value="">All Sub Categories</option>
                                         {categories.length > 0 ? (
                                             categories.map(cat => (
                                                 <option key={cat.id} value={cat.id}>
@@ -520,17 +584,92 @@ const QuizManagement: React.FC = () => {
 
                         <form onSubmit={handleSubmit} className="form-grid" style={{ marginTop: '1.5rem' }}>
                             <div className="form-group">
-                                <label>Category</label>
+                                <label>Sub Category</label>
                                 <select
                                     value={formData.sub_category_id}
                                     onChange={e => setFormData({ ...formData, sub_category_id: e.target.value })}
                                     required
                                 >
-                                    <option value="">Select a Category...</option>
+                                    <option value="">Select a Sub Category...</option>
                                     {categories.map(cat => (
                                         <option key={cat.id} value={cat.id}>{cat.name}</option>
                                     ))}
                                 </select>
+                            </div>
+
+                            <div className="form-group full-width">
+                                <label>Attachment (Optional)</label>
+                                <div style={{
+                                    border: '2px dashed var(--border-color)',
+                                    padding: '1rem',
+                                    borderRadius: '8px',
+                                    textAlign: 'center',
+                                    cursor: 'pointer',
+                                    position: 'relative',
+                                    background: 'rgba(255, 255, 255, 0.02)'
+                                }}>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={e => {
+                                            if (e.target.files && e.target.files[0]) {
+                                                setFormData({ ...formData, attachment: e.target.files[0] });
+                                            }
+                                        }}
+                                        style={{
+                                            position: 'absolute',
+                                            top: 0,
+                                            left: 0,
+                                            width: '100%',
+                                            height: '100%',
+                                            opacity: 0,
+                                            cursor: 'pointer',
+                                            zIndex: 5
+                                        }}
+                                    />
+                                    {formData.attachment ? (
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', color: '#10b981' }}>
+                                            <CheckCircle2 size={18} />
+                                            <span>{formData.attachment.name}</span>
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                    setFormData({ ...formData, attachment: null });
+                                                }}
+                                                style={{ marginLeft: '1rem', color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', zIndex: 10, position: 'relative' }}
+                                            >
+                                                <X size={16} />
+                                            </button>
+                                        </div>
+                                    ) : formData.existing_image_url ? (
+                                        <div style={{ position: 'relative', width: '100%', height: '150px', display: 'flex', justifyContent: 'center' }}>
+                                            <img
+                                                src={formData.existing_image_url}
+                                                alt="Current attachment"
+                                                style={{ maxHeight: '100%', maxWidth: '100%', borderRadius: '4px' }}
+                                            />
+                                            <div style={{
+                                                position: 'absolute',
+                                                bottom: 0,
+                                                left: 0,
+                                                right: 0,
+                                                background: 'rgba(0,0,0,0.6)',
+                                                color: 'white',
+                                                padding: '4px',
+                                                fontSize: '0.8rem'
+                                            }}>
+                                                Click to replace image
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)' }}>
+                                            <PlusCircle size={24} />
+                                            <span>Click to Upload Image</span>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
 
                             <div className="form-group full-width">
