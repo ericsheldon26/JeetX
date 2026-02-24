@@ -53,6 +53,11 @@ const envSchema = {
 
     // CORS
     CORS_ORIGIN: { type: 'string', default: '*', required: false },
+
+    R2_ACCESS_KEY_ID: { type: 'string', required: true, sensitive: true },
+    R2_ACCESS_SECRET: { type: 'string', required: true, sensitive: true },
+    R2_BUCKET: { type: 'string', required: true },
+    R2_ENDPOINT: { type: 'string', required: true },
 };
 
 /**

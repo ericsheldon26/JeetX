@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
@@ -22,11 +23,12 @@ async function runMigrations() {
         // eslint-disable-next-line no-undef
         // const schemaPath = path.join(__dirname, 'schema.sql');
 
-        // eslint-disable-next-line no-undef
         const quizSchemaPath = path.join(__dirname, 'quiz.schema.sql');
+        const walletSchemaPath = path.join(__dirname, 'wallet.schema.sql');
 
         const schemaArrays = [
             // schemaPath,
+            // walletSchemaPath,
             quizSchemaPath
         ]
 

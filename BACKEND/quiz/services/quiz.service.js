@@ -7,6 +7,7 @@ const walletService = require('@/services/wallet.service');
 const notificationService = require('@/services/notification.service');
 const logger = require('@/utils/logger');
 const db = require('@/config/database');
+const { GetUnSignedUrl } = require("@/services/storage/storage.services");
 
 class QuizService {
     /**
@@ -83,15 +84,36 @@ class QuizService {
             }
 
             // Remove correct answers from questions sent to frontend
-            const questionsForUser = questions.map(q => ({
-                id: q.id,
-                question_text: q.question_text,
-                option_a: q.option_a,
-                option_b: q.option_b,
-                option_c: q.option_c,
-                option_d: q.option_d,
-                difficulty: q.difficulty
-            }));
+            //     const questionsForUser = questions.map(async (q) => {
+            //         return {
+            //             id: q.id,
+            //             question_text: q.question_text,
+            //             option_a: q.option_a,
+            //             option_b: q.option_b,
+            //             option_c: q.option_c,
+            //             option_d: q.option_d,
+            //             difficulty: q.difficulty
+            //         });
+            // }
+
+
+            const questionsForUser = await Promise.all(questions.map(async (q) => {
+                let imagePath
+                if (q?.icon_url) {
+                    const { success, url } = await GetUnSignedUrl(q?.icon_url);
+                    q.image_path = success ? url : ""
+                }
+                return {
+                    id: q.id,
+                    question_text: q.question_text,
+                    option_a: q.option_a,
+                    option_b: q.option_b,
+                    option_c: q.option_c,
+                    option_d: q.option_d,
+                    imagePath: imagePath || null,
+                    difficulty: q.difficulty
+                }
+            }))
 
             // Store questions with correct answers in session
             const questionsWithAnswers = questions.map(q => ({

@@ -4,6 +4,8 @@ const { body, query, param } = require('express-validator');
 const adminQuestionController = require('@/controllers/quiz/question.controller');
 const { authenticateToken, isAdmin } = require('@/middleware/auth.middleware');
 const { validate } = require('@/utils/validators');
+const UploadStorage = require("@/services/storage/upload.storage");
+
 const router = express.Router();
 
 // All routes require admin authentication
@@ -91,9 +93,12 @@ router.get('/test', (req, res) => {
  */
 router.post(
     '/',
+    (request, response, next) => UploadStorage(request, response, next, ["image", "application"], false),
+
     [
         body('sub_category_id').isUUID(),
         body('question_text').notEmpty().trim(),
+        // body('icon_url'),
         body('option_a').notEmpty().trim(),
         body('option_b').notEmpty().trim(),
         body('option_c').notEmpty().trim(),
@@ -158,6 +163,7 @@ router.get(
  */
 router.put(
     '/:id',
+    (request, response, next) => UploadStorage(request, response, next, ["image", "application"], false),
     [
         param('id').isUUID(),
         body('question_text').notEmpty().trim(),
@@ -194,10 +200,10 @@ router.put(
  */
 router.post(
     '/bulk',
-    [
-        body('questions').isArray({ min: 1 }),
-    ],
-    validate,
+    // [
+    //     body('questions').isArray({ min: 1 }),
+    // ],
+    // validate,
     adminQuestionController.bulkImport
 );
 

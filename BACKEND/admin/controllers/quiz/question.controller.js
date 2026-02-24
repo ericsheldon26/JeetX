@@ -2,6 +2,7 @@
 const questionModel = require('@/models/quiz/question.model');
 const logger = require('@/utils/logger');
 const db = require('@/config/database');
+const { GetUnSignedUrl } = require("@/services/storage/storage.services");
 
 class AdminQuestionController {
     /**
@@ -14,7 +15,6 @@ class AdminQuestionController {
                 ...req.body,
                 created_by: adminId
             };
-
             const question = await questionModel.create(questionData);
 
             res.status(201).json({
@@ -62,7 +62,7 @@ class AdminQuestionController {
             query += ` ORDER BY created_at DESC LIMIT $${paramCount} OFFSET $${paramCount + 1}`;
             params.push(limit, offset);
 
-            const result = await db.query(query, params);
+            let result = await db.query(query, params);
 
 
             // Get total count
@@ -88,6 +88,14 @@ class AdminQuestionController {
             }
 
             const countResult = await db.query(countQuery, countParams);
+            await Promise.all(result.rows.map(async (res) => {
+
+                if (res?.icon_url) {
+                    const { success, url } = await GetUnSignedUrl(res?.icon_url);
+                    res.image_path = success ? url : ""
+                }
+            })
+            )
 
             res.json({
                 success: true,
@@ -200,35 +208,47 @@ class AdminQuestionController {
      */
     async bulkImport(req, res) {
         try {
-            const { questions } = req.body;
-            const adminId = req.user.id;
-            const results = {
-                total: questions.length,
-                success: 0,
-                failed: 0,
-                errors: []
-            };
 
-            for (const questionData of questions) {
-                try {
-                    await questionModel.create({
-                        ...questionData,
-                        created_by: adminId
-                    });
-                    results.success++;
-                } catch (error) {
-                    results.failed++;
-                    results.errors.push({
-                        question: questionData.question_text,
-                        error: error.message
-                    });
-                }
-            }
+            const fs = require("fs");
+            const csv = require("csv-parser");
+
+            const questions = [];
+
+            fs.createReadStream("continent.csv")
+                .pipe(csv())
+                .on("data", (data) => questions.push(data))
+                .on("end", () => {
+                    console.log(questions); // Array of JSON objects
+                });
+            // const { questions } = req.body;
+            // const adminId = req.user.id;
+            // const results = {
+            //     total: questions.length,
+            //     success: 0,
+            //     failed: 0,
+            //     errors: []
+            // };
+
+            // for (const questionData of questions) {
+            //     try {
+            //         await questionModel.create({
+            //             ...questionData,
+            //             created_by: adminId
+            //         });
+            //         results.success++;
+            //     } catch (error) {
+            //         results.failed++;
+            //         results.errors.push({
+            //             question: questionData.question_text,
+            //             error: error.message
+            //         });
+            //     }
+            // }
 
             res.json({
                 success: true,
                 message: 'Bulk import completed',
-                data: results
+                // data: results
             });
         } catch (error) {
             logger.error('Bulk import error:', error);

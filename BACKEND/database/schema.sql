@@ -19,10 +19,6 @@ DROP TABLE IF EXISTS user_notifications CASCADE;
 
 DROP TABLE IF EXISTS user_notification_preferences CASCADE;
 
-DROP TABLE IF EXISTS wallet_transactions CASCADE;
-
-DROP TABLE IF EXISTS wallets CASCADE;
-
 DROP TABLE IF EXISTS referrals CASCADE;
 
 DROP TABLE IF EXISTS user_devices CASCADE;
@@ -112,69 +108,6 @@ CREATE TABLE referrals (
         referrer_user_id <> referred_user_id
     )
 );
--- ==========================================
--- Wallets Table
--- ==========================================
-
-CREATE TABLE IF NOT EXISTS wallets (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid (),
-    user_id UUID NOT NULL REFERENCES users (id) ON DELETE CASCADE,
-    coin_balance INTEGER DEFAULT 0 CHECK (coin_balance >= 0),
-    total_earned INTEGER DEFAULT 0,
-    total_spent INTEGER DEFAULT 0,
-    status VARCHAR(20) DEFAULT 'ACTIVE' CHECK (
-        status IN (
-            'ACTIVE',
-            'FROZEN',
-            'SUSPENDED'
-        )
-    ),
-    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE (user_id)
-);
-
--- ==========================================
--- Wallets Transactions Table
--- ==========================================
-CREATE TABLE IF NOT EXISTS wallet_transactions (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid (),
-    user_id UUID NOT NULL REFERENCES users (id) ON DELETE CASCADE,
-    wallet_id UUID NOT NULL REFERENCES wallets (id) ON DELETE CASCADE,
-    transaction_type VARCHAR(50) NOT NULL CHECK (
-        transaction_type IN (
-            'CREDIT',
-            'DEBIT',
-            'REFERRAL_BONUS',
-            'PRACTICE_ENTRY',
-            'PRACTICE_REFUND',
-            'TOURNAMENT_ENTRY',
-            'TOURNAMENT_REWARD',
-            'TOURNAMENT_CANCELLED_REFUND',
-            'ADMIN_CREDIT',
-            'ADMIN_DEBIT',
-            'PURCHASE',
-            'REWARD'
-        )
-    ),
-    amount INTEGER NOT NULL,
-    reference_id UUID,
-    reference_type VARCHAR(50),
-    description TEXT,
-    metadata JSONB,
-    balance_before INTEGER NOT NULL,
-    balance_after INTEGER NOT NULL,
-    status VARCHAR(20) DEFAULT 'COMPLETED' CHECK (
-        status IN (
-            'PENDING',
-            'COMPLETED',
-            'FAILED',
-            'REVERSED'
-        )
-    ),
-    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
-);
-
 -- ==========================================
 -- Referral Configuration Table
 -- ==========================================
@@ -408,16 +341,6 @@ CREATE INDEX IF NOT EXISTS idx_referrals_status ON referrals (status);
 
 CREATE INDEX IF NOT EXISTS idx_referrals_code ON referrals (referral_code);
 
-CREATE INDEX IF NOT EXISTS idx_wallets_user_id ON wallets (user_id);
-
-CREATE INDEX IF NOT EXISTS idx_wallet_transactions_user_id ON wallet_transactions (user_id);
-
-CREATE INDEX IF NOT EXISTS idx_wallet_transactions_wallet_id ON wallet_transactions (wallet_id);
-
-CREATE INDEX IF NOT EXISTS idx_wallet_transactions_reference_id ON wallet_transactions (reference_id);
-
-CREATE INDEX IF NOT EXISTS idx_wallet_transactions_created_at ON wallet_transactions (created_at DESC);
-
 CREATE UNIQUE INDEX IF NOT EXISTS uq_referral_config_single_active ON referral_config (is_active)
 WHERE
     is_active = TRUE;
@@ -476,12 +399,6 @@ CREATE TRIGGER update_users_updated_at
 -- Apply trigger to referrals table
 CREATE TRIGGER update_referrals_updated_at
     BEFORE UPDATE ON referrals
-    FOR EACH ROW
-    EXECUTE FUNCTION update_updated_at_column();
-
--- Apply trigger to wallets table
-CREATE TRIGGER update_wallets_updated_at
-    BEFORE UPDATE ON wallets
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
 

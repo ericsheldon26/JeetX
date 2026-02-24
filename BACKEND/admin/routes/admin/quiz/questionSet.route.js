@@ -82,14 +82,15 @@ setRouter.put(
 );
 
 /**
- * @route   DELETE /admin/api/v1/quiz/question-sets/:id
- * @desc    Delete question set
+ * @route   PUT /admin/api/v1/quiz/question-sets/:id/status
+ * @desc    UPDATE question set status
  * @access  Admin
  */
-setRouter.delete(
-    '/:id',
+setRouter.put(
+    '/:id/status',
     [
         param('id').isUUID(),
+        body('status').isIn(['ACTIVE', 'INACTIVE']),
     ],
     validate,
     adminQuestionSetController.deleteSet

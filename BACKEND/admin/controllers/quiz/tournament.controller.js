@@ -228,7 +228,7 @@ class AdminTournamentController {
             const sessionsQuery = 'SELECT user_id, entry_coins FROM quiz_sessions WHERE slot_id = $1';
             const sessionsResult = await db.query(sessionsQuery, [id]);
 
-            const walletService = require('@/services/wallet/wallet.service');
+            const walletService = require('@/services/wallet.service');
 
             for (const session of sessionsResult.rows) {
                 await walletService.creditCoins(
