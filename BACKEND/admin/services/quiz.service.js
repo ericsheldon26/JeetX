@@ -5,6 +5,8 @@ const quizSessionModel = require('@/models/quiz/session.model');
 const practiceConfigModel = require('@/models/quiz/practiceConfig.model');
 const walletService = require('@/services/wallet.service');
 const notificationService = require('@/services/notification.service');
+const leaderboardService = require('@/services/leaderboard.service');
+
 const logger = require('@/utils/logger');
 const db = require('@/config/database');
 
@@ -372,6 +374,16 @@ class QuizService {
      */
     async finalizeTournament(slotId) {
         try {
+            const gameResult = await db.query(
+                `SELECT id FROM games WHERE name = $1 LIMIT 1`,
+                ['Quiz']
+            );
+
+            if (gameResult.rows.length === 0) {
+                throw new Error("Game 'Quiz' not found");
+            }
+
+            const quiz_id = gameResult.rows[0].id;
             const slot = await tournamentSlotModel.findById(slotId);
 
             if (slot.status !== 'SCHEDULED' && slot.status !== 'ACTIVE') {
@@ -399,7 +411,16 @@ class QuizService {
 
                 // Update session with rank and reward
                 await quizSessionModel.updateRankAndReward(session.id, rank, coinsWon);
-
+                await leaderboardService.recordMatchResult({
+                    user_id: session.user_id,
+                    category_id: quiz_id,
+                    match_type: "TOURNAMENT",
+                    match_id: session.id,
+                    points_earned: session?.final_score,
+                    rank,
+                    coins_won: coinsWon,
+                    is_winner: rank == 1 ? true : false,
+                })
                 // Credit coins to winner
                 if (coinsWon > 0) {
                     await walletService.creditCoins(
