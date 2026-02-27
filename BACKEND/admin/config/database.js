@@ -1,7 +1,7 @@
 /* eslint-disable no-undef */
 
 const { Pool } = require('pg');
-const logger = require('@/utils/logger');
+const logger = require('../utils/logger');
 
 // Database configuration from environment variables
 const dbConfig = {

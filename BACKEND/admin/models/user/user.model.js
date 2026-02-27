@@ -224,22 +224,23 @@
 // ==========================================
 // src/models/user.model.js
 // ==========================================
-const db = require('@/config/database');
+const db = require('../../config/database');
 
 class UserModel {
   async create(userData) {
     const query = `
       INSERT INTO users (
-        firebase_uid, full_name, email, mobile,
+        firebase_uid,password_hash, full_name, email, mobile,
         is_email_verified, is_mobile_verified,
         referral_code, status,role
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9,$10)
       RETURNING *
     `;
 
     const values = [
       userData.firebase_uid,
+      userData.password_hash,
       userData.full_name,
       userData.email,
       userData.mobile,

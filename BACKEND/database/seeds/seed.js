@@ -2,8 +2,10 @@ require('dotenv').config();
 require("module-alias/register");
 
 const { Pool } = require('pg');
-const firebaseService = require('@/services/firebase.service');
-const adminAuthController = require('@/controllers/admin/auth.controller');
+const firebaseService = require('@/auth/services/firebase.service');
+const userModel = require('@/auth/models/user/user.model');
+const adminAuthController = require('@/admin/controllers/admin/auth.controller');
+const userAuthController = require('@/auth/controllers/auth.controller');
 
 // Create a new pool specifically for seeding
 const pool = new Pool({
@@ -89,6 +91,7 @@ async function seedDatabase() {
             {
                 full_name: 'Aritra Naharay',
                 email: 'aritranaharay@gmail.com',
+                password: 'Shashwatin@0812',
                 mobile: '+919599904224',
                 country_code: '+91',
                 is_email_verified: true,
@@ -99,6 +102,7 @@ async function seedDatabase() {
             {
                 full_name: 'Himanshi P',
                 email: 'ph093279@gmail.com',
+                password: 'Shashwatin@0812',
                 mobile: '+919499172303',
                 country_code: '+91',
                 is_email_verified: true,
@@ -111,6 +115,7 @@ async function seedDatabase() {
                 full_name: 'Aritra N',
                 email: 'aritrasings@gmail.com',
                 mobile: '+919958050224',
+                password: 'Shashwatin@0812',
                 country_code: '+91',
                 is_email_verified: true,
                 is_mobile_verified: true,
@@ -121,48 +126,64 @@ async function seedDatabase() {
 
         for (const user of testUsers) {
             let admin_permissions = null
-            if (user.role !== 'USER') {
-                admin_permissions = adminAuthController.getDefaultPermissions()
-            }
-
-
+            let result
+            const password_hash = userAuthController.hashPassword(user.password)
 
             const firebaseUser = await firebaseService.createUserWithEmailPassword(
                 user.email,
                 user.password,
                 user.mobile
             );
-            const query = `
-        INSERT INTO users (
-          firebase_uid, full_name, email, mobile,
-          is_email_verified, is_mobile_verified, status,role,admin_permissions
-        )
-        VALUES ($1, $2, $3, $4, $5, $6, $7,$8,$9)
-        RETURNING id, email
-      `;
 
-            const result = await client.query(query, [
-                firebaseUser.uid,
-                user.full_name,
-                user.email,
-                user.mobile,
-                user.is_email_verified,
-                user.is_mobile_verified,
-                user.status,
-                user.role,
-                admin_permissions
-            ]);
-            if (user.role === 'USER') {
-                const userId = result.rows[0].id
-                const referralService = require('@/services/referral.service');
+            if (user.role == 'USER') {
+                const userData = {
+                    firebase_uid: firebaseUser.uid,
+                    password_hash,
+                    full_name: user.full_name,
+                    mobile: user.mobile,
+                    country_code: user.country_code,
+                    email: user.email,
+                    password: user.password,
+                    confirm_password: user.password,
+                    role: user.role,
+                }
+                const createUser = await userModel.create(userData);
+                const userId = createUser.id
+                const referralService = require('@/auth/services/referral.service');
                 await referralService.createReferralCodeForUser(userId);
 
                 // CREATE WALLET FOR NEW USER
-                const walletModel = require('@/models/wallet/wallet.model');
+                const walletModel = require('@/auth/models/wallet/wallet.model');
                 await walletModel.create(userId, 10000000);
             }
+            else {
+                admin_permissions = adminAuthController.getDefaultPermissions()
 
-            console.log(`  ✓ Created user: ${result.rows[0].email}`);
+
+                const query = `
+        INSERT INTO users (
+          firebase_uid,password_hash, full_name, email, mobile,
+          is_email_verified, is_mobile_verified, status,role,admin_permissions
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7,$8,$9,$10)
+        RETURNING id, email
+      `;
+
+                await client.query(query, [
+                    firebaseUser.uid,
+                    password_hash,
+                    user.full_name,
+                    user.email,
+                    user.mobile,
+                    user.is_email_verified,
+                    user.is_mobile_verified,
+                    user.status,
+                    user.role,
+                    admin_permissions
+                ]);
+            }
+
+            console.log(`  ✓ Created user: ${user.email}`);
         }
 
         console.log('\n✅ Database seeded successfully!\n');

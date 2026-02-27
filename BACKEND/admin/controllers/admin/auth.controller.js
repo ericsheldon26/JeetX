@@ -1,8 +1,9 @@
-const userModel = require('@/models/user/user.model');
-const firebaseService = require('@/services/firebase.service');
-const jwtService = require('@/services/jwt.service');
-const logger = require('@/utils/logger');
-const db = require('@/config/database');
+const userModel = require('../../models/user/user.model');
+const firebaseService = require('../../services/firebase.service');
+const jwtService = require('../../services/jwt.service');
+const logger = require('../../utils/logger');
+const db = require('../../config/database');
+const crypto = require("crypto");
 
 // const bcrypt = require('bcrypt');
 
@@ -118,6 +119,40 @@ function getDefaultPermissions(role) {
 }
 
 class AdminAuthController {
+    constructor() {
+        this.loginAdmin = this.loginAdmin.bind(this);
+    }
+    hashPassword(password) {
+        const salt = crypto.randomBytes(16).toString("hex");
+
+        const hash = crypto.pbkdf2Sync(
+            password,
+            salt,
+            100000,
+            64,
+            "sha512"
+        ).toString("hex");
+
+        return `${salt}:${hash}`;
+    }
+
+    verifyPassword(password, storedValue) {
+        const [salt, originalHash] = storedValue.split(":");
+
+        const hash = crypto.pbkdf2Sync(
+            password,
+            salt,
+            100000,
+            64,
+            "sha512"
+        );
+
+        return crypto.timingSafeEqual(
+            // eslint-disable-next-line no-undef
+            Buffer.from(originalHash, "hex"),
+            hash
+        );
+    }
     getDefaultPermissions(role) {
         if (role === 'SUPER_ADMIN') {
             return {
@@ -240,7 +275,7 @@ class AdminAuthController {
             // Check if this is initial setup (no admins exist)
 
             const adminCount = await getAdminCount();
-
+            const password_hash = this.hashPassword(password)
 
             // If admins exist, require super admin authentication
             if (adminCount > 0) {
@@ -284,6 +319,7 @@ class AdminAuthController {
             const adminData = {
                 firebase_uid: firebaseUser.uid,
                 full_name: full_name.trim(),
+                password_hash,
                 email: email.toLowerCase(),
                 mobile: fullMobile,
                 role: role,
@@ -353,7 +389,14 @@ class AdminAuthController {
                 });
             }
 
-            // Verify password with Firebase
+            const isMatch = this.verifyPassword(password.toString().trim(), user.password_hash)
+            if (!isMatch) {
+                return res.status(403).json({
+                    success: false,
+                    error: 'PASSWORD_INVALID',
+                    message: 'Password does not match. Please try again.',
+                });
+            }
             try {
                 await firebaseService.signInWithEmail(email, password);
             } catch (error) {

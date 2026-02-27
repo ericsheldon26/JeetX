@@ -45,6 +45,7 @@ CREATE TABLE users (
     ),
     full_name VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
     mobile VARCHAR(20) UNIQUE NOT NULL,
     is_email_verified BOOLEAN DEFAULT FALSE,
     is_mobile_verified BOOLEAN DEFAULT FALSE,
