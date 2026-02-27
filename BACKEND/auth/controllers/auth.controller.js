@@ -1,14 +1,51 @@
 
-const firebaseService = require('@/services/firebase.service');
-const otpService = require('@/services/otp.service');
-const passwordService = require('@/services/password.service');
-const jwtService = require('@/services/jwt.service');
-const emailService = require('@/services/email.service');
-const userModel = require('@/models/user/user.model');
+const firebaseService = require('../services/firebase.service');
+const otpService = require('../services/otp.service');
+const passwordService = require('../services/password.service');
+const jwtService = require('../services/jwt.service');
+const emailService = require('../services/email.service');
+const userModel = require('../models/user/user.model');
+const crypto = require("crypto");
 // const db = require('@/config/database');
-const logger = require('@/utils/logger');
+const logger = require('../utils/logger');
 
 class AuthController {
+    constructor() {
+        this.loginWithEmail = this.loginWithEmail.bind(this);
+    }
+
+    hashPassword(password) {
+        const salt = crypto.randomBytes(16).toString("hex");
+
+        const hash = crypto.pbkdf2Sync(
+            password,
+            salt,
+            100000,
+            64,
+            "sha512"
+        ).toString("hex");
+
+        return `${salt}:${hash}`;
+    }
+
+    verifyPassword(password, storedValue) {
+        const [salt, originalHash] = storedValue.split(":");
+
+        const hash = crypto.pbkdf2Sync(
+            password,
+            salt,
+            100000,
+            64,
+            "sha512"
+        );
+
+        return crypto.timingSafeEqual(
+            // eslint-disable-next-line no-undef
+            Buffer.from(originalHash, "hex"),
+            hash
+        );
+    }
+
     // ==========================================
     // MOBILE OTP ENDPOINTS
     // ==========================================
@@ -228,10 +265,11 @@ class AuthController {
 
             // Create Firebase user with email and password
             const firebaseUser = await firebaseService.createUserWithEmailPassword(email, password, fullMobile);
-
+            const password_hash = this.hashPassword(password.toString().trim())
             // Create user in database
             const userData = {
                 firebase_uid: firebaseUser.uid,
+                password_hash,
                 full_name: full_name.trim(),
                 email: email.toLowerCase(),
                 mobile: fullMobile,
@@ -326,6 +364,7 @@ class AuthController {
                     message: 'Invalid email or password',
                 });
             }
+            const isMatch = this.verifyPassword(password.toString().trim(), user.password_hash)
 
             if (user.role !== 'USER') {
                 return res.status(403).json({
@@ -340,6 +379,14 @@ class AuthController {
                     success: false,
                     error: 'USER_BLOCKED',
                     message: 'Your account has been blocked. Please contact support.',
+                });
+            }
+
+            if (!isMatch) {
+                return res.status(403).json({
+                    success: false,
+                    error: 'PASSWORD_INVALID',
+                    message: 'Password does not match. Please try again.',
                 });
             }
 

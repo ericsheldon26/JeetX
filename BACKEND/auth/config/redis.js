@@ -1,6 +1,6 @@
 
 const redis = require('redis');
-const logger = require('@/utils/logger');
+const logger = require('../utils/logger');
 
 // Redis configuration
 const redisConfig = {

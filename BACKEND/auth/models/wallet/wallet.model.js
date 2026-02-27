@@ -1,4 +1,5 @@
-const db = require('@/config/database');
+const db = require('../../config/database');
+
 
 class WalletModel {
     async create(userId, coin_balance = 0) {

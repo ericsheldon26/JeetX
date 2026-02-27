@@ -1,8 +1,8 @@
-const referralModel = require('@/models/referral/referral.model');
-const walletModel = require('@/models/wallet/wallet.model');
-const userModel = require('@/models/user/user.model');
-const db = require('@/config/database');
-const logger = require('@/utils/logger');
+const referralModel = require('../models/referral/referral.model');
+const walletModel = require('../models/wallet/wallet.model');
+const userModel = require('../models/user/user.model');
+const db = require('../config/database');
+const logger = require('../utils/logger');
 
 class ReferralService {
     /**

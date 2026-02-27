@@ -58,7 +58,6 @@ class FirebaseService {
         try {
             // Get user by email
             const userRecord = await admin.auth().getUserByEmail(email);
-
             // Note: Password verification should be done client-side
             // This is for server-side validation
             return userRecord;
