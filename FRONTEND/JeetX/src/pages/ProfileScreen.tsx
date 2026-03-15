@@ -1,7 +1,9 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar, Dimensions } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import { SafeAreaView } from 'react-native-safe-area-context';
+// import { SafeAreaView } from 'react-native-safe-area-context'; // Original Windows/Native code
+import ScreenWrapper from '../components/ScreenWrapper'; // Linux/NewArch Fix
+
 import { useNavigation } from '@react-navigation/native';
 import { getFCMToken } from '../utils/notificationHelper';
 import { removeToken } from '../api/notificationApi';
@@ -63,8 +65,10 @@ const ProfileScreen = () => {
     ];
 
     return (
-        <SafeAreaView style={styles.container}>
-            <StatusBar barStyle="light-content" backgroundColor="#0f172a" />
+        /* <SafeAreaView style={styles.container}> */ // Original code
+        /* <StatusBar barStyle="light-content" backgroundColor="#0f172a" /> */ // Original code
+        <ScreenWrapper style={styles.container} statusBarColor="#0f172a" statusBarStyle="light-content">
+
 
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
                 <View style={styles.profileHeader}>
@@ -111,9 +115,11 @@ const ProfileScreen = () => {
                     ))}
                 </View>
             </ScrollView>
-        </SafeAreaView>
+        </ScreenWrapper>
+        /* </SafeAreaView> */ // Original code
     );
 };
+
 
 const styles = StyleSheet.create({
     container: {

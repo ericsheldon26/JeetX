@@ -1,6 +1,9 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, StatusBar, FlatList } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+// import { SafeAreaView } from 'react-native-safe-area-context'; // Original Windows/Native code
+import { useSafeAreaInsets } from 'react-native-safe-area-context'; // Linux/NewArch Fix
+import ScreenWrapper from '../components/ScreenWrapper'; // Linux/NewArch Fix
+
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import LinearGradient from 'react-native-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
@@ -54,7 +57,9 @@ const MATCHES_DATA = [
 ];
 
 const RecentlyPlayed = () => {
-    const navigation = useNavigation();
+    const navigation = useNavigation() as any;
+    const insets = useSafeAreaInsets(); // Linux/NewArch Fix
+
 
     const renderHeader = () => (
         <View style={styles.header}>
@@ -134,14 +139,26 @@ const RecentlyPlayed = () => {
     );
 
     return (
-        <View style={styles.container}>
-            <StatusBar barStyle="light-content" backgroundColor="#02121a" />
+        <ScreenWrapper 
+          style={styles.container} 
+          disableTopInset={true}
+          statusBarColor="#02121a"
+          statusBarStyle="light-content"
+        >
+            {/* <View style={styles.container}> */} {/* Original code */}
+            {/* <StatusBar barStyle="light-content" backgroundColor="#02121a" /> */} {/* Original code */}
+
 
             {/* Dark Header Background */}
             <View style={styles.darkHeaderBg}>
-                <SafeAreaView edges={['top']}>
+                {/* <SafeAreaView edges={['top']}> */} {/* Original code */}
+                <View style={{ paddingTop: insets.top }}>
+
+
                     {renderHeader()}
-                </SafeAreaView>
+                </View>
+                {/* </SafeAreaView> */}
+
                 {/* Extra space for the floating card overlap */}
                 <View style={{ height: 60 }} />
             </View>
@@ -173,9 +190,12 @@ const RecentlyPlayed = () => {
                     }
                 />
             </View>
-        </View>
+            {/* </View> */} {/* Original code */}
+        </ScreenWrapper>
     );
 };
+
+
 
 const styles = StyleSheet.create({
     container: {

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, StatusBar, FlatList, ScrollView, Platform } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+// import { SafeAreaView } from 'react-native-safe-area-context'; // Original Windows/Native code
+import ScreenWrapper from '../../components/ScreenWrapper'; // Linux/NewArch Fix
+
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import LinearGradient from 'react-native-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
@@ -190,18 +192,24 @@ const MyTransactionsDeposits = () => {
     };
 
     return (
-        <View style={styles.container}>
-            <StatusBar barStyle="light-content" backgroundColor="#02121a" />
+        <ScreenWrapper 
+          style={styles.container}
+          statusBarColor="#02121a"
+          statusBarStyle="light-content"
+          backgroundColor="#f1f5f9"
+        >
+            {/* <StatusBar barStyle="light-content" backgroundColor="#02121a" /> */} {/* Original code */}
 
-            <SafeAreaView edges={['top']} style={styles.headerSafeArea}>
-                <View style={styles.header}>
+            {/* <SafeAreaView edges={['top']} style={styles.headerSafeArea}> */} {/* Original code */}
+                <View style={[styles.header, styles.headerSafeArea]}>
                     <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
                         <FontAwesome name="arrow-left" size={20} color="#ffffff" />
                     </TouchableOpacity>
                     <Text style={styles.headerTitle}>My Transactions</Text>
                     <View style={{ width: 20 }} />
                 </View>
-            </SafeAreaView>
+            {/* </SafeAreaView> */} {/* Original code */}
+
 
             {/* Tabs - Now on White BG */}
             <View style={styles.tabsContainer}>
@@ -237,9 +245,10 @@ const MyTransactionsDeposits = () => {
                 contentContainerStyle={styles.listContent}
                 showsVerticalScrollIndicator={false}
             />
-        </View>
+        </ScreenWrapper>
     );
 };
+
 
 const styles = StyleSheet.create({
     container: {
@@ -249,6 +258,7 @@ const styles = StyleSheet.create({
     headerSafeArea: {
         backgroundColor: '#02121a',
     },
+
     header: {
         height: 56, // Standard height
         flexDirection: 'row',

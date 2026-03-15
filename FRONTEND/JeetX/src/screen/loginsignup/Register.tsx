@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Image, TextInput, TouchableOpacity, StatusBar, ScrollView, Dimensions, KeyboardAvoidingView, Platform, Alert, ActivityIndicator, ToastAndroid, Modal, Keyboard } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import LinearGradient from 'react-native-linear-gradient';
-import { SafeAreaView } from 'react-native-safe-area-context';
+// import { SafeAreaView } from 'react-native-safe-area-context'; // Original Windows/Native code
+import ScreenWrapper from '../../components/ScreenWrapper'; // Linux/NewArch Fix
+
 import RegisterSvg from '../../assets/register2.svg';
 import GoogleSvg from '../../assets/google.svg';
 import { CONFIG, setTokens } from '../../api/config';
@@ -386,8 +388,16 @@ const Register = ({ navigation, route }: any) => {
     };
 
     return (
-        <SafeAreaView style={styles.container} edges={['left', 'right', 'bottom']}>
-            <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+        <ScreenWrapper 
+          style={styles.container}
+          statusBarColor="transparent"
+          statusBarStyle="light-content"
+          backgroundColor="#0f172a"
+        >
+            {/* <SafeAreaView style={styles.container} edges={['left', 'right', 'bottom']}> */} {/* Original code */}
+            {/* <StatusBar barStyle="light-content" backgroundColor="transparent" translucent /> */} {/* Original code */}
+
+
 
             {/* Top Background Illustration - Dynamic Height */}
             <View style={[styles.topContainer, { height: isKeyboardVisible ? hp(8) : hp(35) }]}>
@@ -636,12 +646,28 @@ const Register = ({ navigation, route }: any) => {
                                 <GoogleSvg width={scale(24)} height={scale(24)} />
                             </TouchableOpacity>
                         </View>
+
+                        {/* BYPASS REGISTRATION - DEVELOPMENT ONLY */}
+                        <TouchableOpacity 
+                            style={[styles.socialButton, { marginTop: verticalScale(10), borderColor: '#ef4444', backgroundColor: '#fef2f2', borderWidth: 1, borderRadius: scale(24), paddingVertical: verticalScale(12), flexDirection: 'row', alignItems: 'center', justifyContent: 'center', alignSelf: 'center', width: '80%' }]} 
+                            onPress={() => {
+                                console.log('[Register.tsx] BYPASS REGISTRATION pressed');
+                                showToast('Bypassing Registration...');
+                                navigation.navigate('Main');
+                            }}
+                        >
+                            <FontAwesome name="shield" size={moderateScale(20)} color="#ef4444" />
+                            <Text style={{ color: '#ef4444', marginLeft: scale(12), fontSize: moderateScale(15), fontWeight: '600' }}>BYPASS SIGNUP (DEV)</Text>
+                        </TouchableOpacity>
                     </ScrollView>
+
                 </View>
             </KeyboardAvoidingView>
-        </SafeAreaView>
+            {/* </SafeAreaView> */} {/* Original code */}
+        </ScreenWrapper>
     );
 };
+
 
 const styles = StyleSheet.create({
     container: {
@@ -777,6 +803,17 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         gap: scale(20),
         marginBottom: verticalScale(30),
+    },
+    socialButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#ffffff',
+        borderWidth: 1,
+        borderColor: '#e2e8f0',
+        borderRadius: scale(12),
+        paddingVertical: verticalScale(14),
+        justifyContent: 'center',
+        marginBottom: verticalScale(16),
     },
     socialIcon: {
         width: scale(48),

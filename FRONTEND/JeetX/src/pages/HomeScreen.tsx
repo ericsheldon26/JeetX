@@ -1,6 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar, FlatList, Dimensions, Image } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+// import { SafeAreaView } from 'react-native-safe-area-context'; // Original Windows/Native code
+import { useSafeAreaInsets } from 'react-native-safe-area-context'; // Linux/NewArch Fix
+import ScreenWrapper from '../components/ScreenWrapper'; // Linux/NewArch Fix
+
+
+
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import LinearGradient from 'react-native-linear-gradient';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
@@ -53,7 +58,9 @@ const HomeScreen = ({ navigation }: any) => {
     // Carousel Logic
     const flatListRef = useRef<FlatList>(null);
     const [currentIndex, setCurrentIndex] = useState(0);
+    const insets = useSafeAreaInsets(); // Linux/NewArch Fix
     const [walletBalance, setWalletBalance] = useState('1,999');
+
     const [unreadCount, setUnreadCount] = useState(0);
     const [quizCategories, setQuizCategories] = useState<QuizCategory[]>([]);
     const [isLoadingQuizzes, setIsLoadingQuizzes] = useState(false);
@@ -119,13 +126,19 @@ const HomeScreen = ({ navigation }: any) => {
         return () => clearInterval(interval);
     }, [currentIndex]);
 
-    const renderPromoItem = ({ item: SvgComponent }: any) => (
+    const renderPromoItem = useCallback(({ item: SvgComponent }: any) => (
         <View style={{ width: width, paddingHorizontal: scale(20) }}>
             <View style={{ width: '100%', height: verticalScale(85), borderRadius: scale(16), overflow: 'hidden' }}>
                 <SvgComponent width="100%" height="100%" preserveAspectRatio="xMidYMid slice" style={{ transform: [{ scale: 1.0 }] }} />
             </View>
         </View>
-    );
+    ), []);
+
+    const getItemLayout = useCallback((data: any, index: number) => ({
+        length: width,
+        offset: width * index,
+        index,
+    }), []);
 
     const renderGameItem = ({ item }: { item: any }) => (
         <TouchableOpacity style={styles.gameCard} onPress={() => {
@@ -245,77 +258,103 @@ const HomeScreen = ({ navigation }: any) => {
     };
 
     return (
-        <SafeAreaView style={styles.container} edges={['left', 'right', 'bottom']}>
-            <StatusBar barStyle="light-content" backgroundColor="#02121a" />
+        <ScreenWrapper
+            style={styles.container}
+            disableTopInset={true}
+            statusBarColor="#02121a"
+            statusBarStyle="light-content"
+        >
+            {/* <SafeAreaView style={styles.container} edges={['left', 'right', 'bottom']}> */} {/* Original code */}
+            {/* <StatusBar barStyle="light-content" backgroundColor="#02121a" /> */} {/* Original code */}
+
+
+
 
             {/* Header + Banner Area */}
             <LinearGradient colors={['#02121a', '#0d3648']} style={styles.header}>
-                <SafeAreaView edges={['top']}>
-                    <View style={styles.headerTop}>
-                        <View style={styles.userInfo}>
-                            <View style={styles.avatarContainer}>
-                                <JeetXLogo width="100%" height="100%" preserveAspectRatio="xMidYMid slice" />
+                <View>
+                    {/* <SafeAreaView edges={['top']}> */} {/* Original code */}
+                    {/* We'll apply top padding manually here to keep it inside the gradient */}
+                    <View style={{ paddingTop: insets.top }}>
+
+
+                        <View style={styles.headerTop}>
+                            <View style={styles.userInfo}>
+                                <View style={styles.avatarContainer}>
+                                    <JeetXLogo width="100%" height="100%" preserveAspectRatio="xMidYMid slice" />
+                                </View>
+                                <Text style={styles.logoText}>JeetX</Text>
                             </View>
-                            <Text style={styles.logoText}>JeetX</Text>
-                        </View>
 
-                        <View style={styles.headerRight}>
-                            <TouchableOpacity style={styles.iconButton} onPress={() => navigation.navigate('Notifications')}>
-                                <FontAwesome name="bell-o" size={22} color="#fff" />
-                                {unreadCount > 0 && (
-                                    <View style={styles.notificationBadge}>
-                                        <Text style={styles.badgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
-                                    </View>
-                                )}
-                            </TouchableOpacity>
-                            <TouchableOpacity style={styles.walletButton}>
-                                <FontAwesome name="google-wallet" size={16} color="#ffffff" style={{ marginRight: 6 }} />
-                                <Text style={styles.walletText}>₹{walletBalance}</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-
-                    {/* Promotional Banner */}
-                    <View style={{ marginVertical: 10 }}>
-                        <FlatList
-                            ref={flatListRef}
-                            data={PROMO_IMAGES}
-                            renderItem={renderPromoItem}
-                            horizontal
-                            pagingEnabled
-                            showsHorizontalScrollIndicator={false}
-                            keyExtractor={(_, index) => index.toString()}
-                            onScroll={(e) => {
-                                const x = e.nativeEvent.contentOffset.x;
-                                const index = Math.round(x / width);
-                                setCurrentIndex(index);
-                            }}
-                        />
-                    </View>
-
-                    {/* Tabs overlapping the gradient or just below */}
-                    <View style={styles.tabsContainer}>
-                        <View style={styles.tabsRow}>
-                            {TABS.map((tab, index) => (
-                                <TouchableOpacity
-                                    key={tab}
-                                    style={[styles.tabButton, activeTab === tab && styles.activeTabButton]}
-                                    onPress={() => onTabPress(tab, index)}
-                                >
-                                    <Text
-                                        style={[styles.tabText, activeTab === tab && styles.activeTabText]}
-                                        numberOfLines={1}
-                                        adjustsFontSizeToFit
-                                    >
-                                        {tab}
-                                    </Text>
-                                    {activeTab === tab && <View style={styles.activeIndicator} />}
+                            <View style={styles.headerRight}>
+                                <TouchableOpacity style={styles.iconButton} onPress={() => navigation.navigate('Notifications')}>
+                                    <FontAwesome name="bell-o" size={22} color="#fff" />
+                                    {unreadCount > 0 && (
+                                        <View style={styles.notificationBadge}>
+                                            <Text style={styles.badgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
+                                        </View>
+                                    )}
                                 </TouchableOpacity>
-                            ))}
+                                <TouchableOpacity style={styles.walletButton}>
+                                    <FontAwesome name="google-wallet" size={16} color="#ffffff" style={{ marginRight: 6 }} />
+                                    <Text style={styles.walletText}>₹{walletBalance}</Text>
+                                </TouchableOpacity>
+                            </View>
                         </View>
+
+                        <View style={{ marginVertical: 10 }}>
+                            <FlatList
+                                ref={flatListRef}
+                                data={PROMO_IMAGES}
+                                renderItem={renderPromoItem}
+                                horizontal
+                                pagingEnabled
+                                showsHorizontalScrollIndicator={false}
+                                keyExtractor={(_, index) => index.toString()}
+                                getItemLayout={getItemLayout}
+                                initialNumToRender={1}
+                                maxToRenderPerBatch={1}
+                                windowSize={3}
+                                removeClippedSubviews={true}
+                                onScroll={(e) => {
+                                    const x = e.nativeEvent.contentOffset.x;
+                                    const index = Math.round(x / width);
+                                    if (index !== currentIndex) {
+                                        setCurrentIndex(index);
+                                    }
+                                }}
+                            />
+                        </View>
+
+                        {/* Tabs overlapping the gradient or just below */}
+                        <View style={styles.tabsContainer}>
+                            <View style={styles.tabsRow}>
+                                {TABS.map((tab, index) => (
+                                    <TouchableOpacity
+                                        key={tab}
+                                        style={[styles.tabButton, activeTab === tab && styles.activeTabButton]}
+                                        onPress={() => onTabPress(tab, index)}
+                                    >
+                                        <Text
+                                            style={[styles.tabText, activeTab === tab && styles.activeTabText]}
+                                            numberOfLines={1}
+                                            adjustsFontSizeToFit
+                                        >
+                                            {tab}
+                                        </Text>
+                                        {activeTab === tab && <View style={styles.activeIndicator} />}
+                                    </TouchableOpacity>
+                                ))}
+                            </View>
+                        </View>
+                    {/* </SafeAreaView> */}
                     </View>
-                </SafeAreaView>
+                </View>
             </LinearGradient>
+
+
+
+
 
             {/* Swipeable List Content */}
             <View style={styles.listContainer}>
@@ -336,9 +375,13 @@ const HomeScreen = ({ navigation }: any) => {
                     }}
                 />
             </View>
-        </SafeAreaView>
+            {/* </SafeAreaView> */}
+        </ScreenWrapper>
     );
 };
+
+
+
 
 const styles = StyleSheet.create({
     container: {

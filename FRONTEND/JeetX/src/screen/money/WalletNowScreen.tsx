@@ -5,7 +5,9 @@ import { useIsFocused } from '@react-navigation/native';
 
 const Image = (props: any) => <View {...props} style={[{ backgroundColor: 'rgba(255,255,255,0.1)' }, props.style]} ><RNImage {...props} style={{ display: 'none' }} /></View>;
 import LinearGradient from "react-native-linear-gradient";
-import { SafeAreaView } from "react-native-safe-area-context";
+// import { SafeAreaView } from "react-native-safe-area-context"; // Original Windows/Native code
+import ScreenWrapper from "../../components/ScreenWrapper"; // Linux/NewArch Fix
+
 
 const WalletNowScreen = () => {
     const isFocused = useIsFocused();
@@ -40,7 +42,14 @@ const WalletNowScreen = () => {
     };
 
     return (
-        <SafeAreaView style={styles.viewBg}>
+        <ScreenWrapper 
+          style={styles.viewBg}
+          statusBarColor="#010e0f"
+          statusBarStyle="light-content"
+          backgroundColor="#f4f6f6"
+        >
+            {/* <SafeAreaView style={styles.viewBg}> */} {/* Original code */}
+
             <View style={[styles.view, styles.viewLayout]}>
 
                 <View style={[styles.mainBody, styles.mainBodyLayout]}>
@@ -192,8 +201,12 @@ const WalletNowScreen = () => {
                     </ScrollView>
                 </LinearGradient>
             </View>
-        </SafeAreaView>);
+            {/* </SafeAreaView> */} {/* Original code */}
+        </ScreenWrapper>
+    );
 };
+
+
 
 const styles = StyleSheet.create({
     walletNowScreen: {

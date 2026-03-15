@@ -4,12 +4,16 @@ import { scale, verticalScale, moderateScale, hp, wp } from '../utils/responsive
 
 const Image = (props: any) => <View {...props} style={[{ backgroundColor: 'rgba(255,255,255,0.1)' }, props.style]} ><RNImage {...props} style={{ display: 'none' }} /></View>;
 import LinearGradient from "react-native-linear-gradient";
-import { SafeAreaView } from "react-native-safe-area-context";
+// import { SafeAreaView } from "react-native-safe-area-context"; // Original Windows/Native code
+import ScreenWrapper from '../components/ScreenWrapper'; // Linux/NewArch Fix
+
 
 const Withdraw = () => {
 
     return (
-        <SafeAreaView style={styles.viewBg}>
+        /* <SafeAreaView style={styles.viewBg}> */ // Original code
+        <ScreenWrapper style={styles.viewBg}>
+
             <View style={[styles.view, styles.viewLayout]}>
                 <LinearGradient style={[styles.bg, styles.bgLayout]} locations={[0, 1]} colors={['#02121a', '#0d3648']} useAngle={true} angle={-90}>
                     <ScrollView style={[styles.scrollview, styles.bgLayout]} horizontal={true}>
@@ -84,8 +88,11 @@ const Withdraw = () => {
                     </View>
                 </View>
             </View>
-        </SafeAreaView>);
+        </ScreenWrapper>
+        /* </SafeAreaView> */ // Original code
+    );
 };
+
 
 const styles = StyleSheet.create({
     withdraw: {

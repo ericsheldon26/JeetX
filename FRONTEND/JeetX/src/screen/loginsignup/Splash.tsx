@@ -1,15 +1,38 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, StatusBar, Dimensions, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, StatusBar, Dimensions, ActivityIndicator, Animated } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { SafeAreaView } from 'react-native-safe-area-context';
+// import { SafeAreaView } from 'react-native-safe-area-context'; // Original Windows/Native code
+import { useSafeAreaInsets } from 'react-native-safe-area-context'; // Linux/NewArch Fix
+import ScreenWrapper from '../../components/ScreenWrapper'; // Linux/NewArch Fix
+
+
+
 import RegisterSvg from '../../assets/register2.svg';
 import JeetXLogo from '../../assets/Jeetxsmall.svg';
 import { loadTokens } from '../../api/config';
 const { width, height } = Dimensions.get('window');
 const Splash = ({ navigation }: any) => {
+    // const fadeAnim = React.useRef(new Animated.Value(0)).current; // Original code
+    // const insets = useSafeAreaInsets(); // Linux/NewArch Fix (Previous manual fix)
+    const fadeAnim = React.useRef(new Animated.Value(0)).current;
+
+
+
+
+    useEffect(() => {
+        Animated.timing(fadeAnim, {
+            toValue: 1,
+            duration: 1200,
+            useNativeDriver: true,
+        }).start();
+    }, [fadeAnim]);
+
     return (
-        <SafeAreaView style={styles.container}>
-            <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+        /* <SafeAreaView style={styles.container}> */ // Original code
+        /* <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}> */ // Previous manual fix
+        <ScreenWrapper style={styles.container}>
+            {/* <StatusBar barStyle="light-content" backgroundColor="transparent" translucent /> */}
+
 
             {/* Top Illustration Section */}
             <View style={styles.topContainer}>
@@ -19,8 +42,8 @@ const Splash = ({ navigation }: any) => {
                     style={styles.illustrationBg}
                 >
                     <RegisterSvg
-                        width="100%"
-                        height="100%"
+                        width={width}
+                        height={height * 0.55}
                         preserveAspectRatio="xMidYMid meet"
                         style={{ transform: [{ scale: 1.10 }] }}
                     />
@@ -28,7 +51,7 @@ const Splash = ({ navigation }: any) => {
             </View>
 
             {/* Bottom White Card */}
-            <View style={styles.bottomContainer}>
+            <Animated.View style={[styles.bottomContainer, { opacity: fadeAnim }]}>
                 <JeetXLogo width={80} height={80} style={styles.logo} />
 
                 <Text style={styles.title}>Welcome</Text>
@@ -56,10 +79,15 @@ const Splash = ({ navigation }: any) => {
                         <Text style={styles.linkHighlight}>Log In</Text>
                     </TouchableOpacity>
                 </View>
-            </View>
-        </SafeAreaView>
+            </Animated.View>
+        </ScreenWrapper>
+        /* </View> */ // Previous manual fix
+        /* </SafeAreaView> */ // Original code
     );
+
 };
+
+
 
 const styles = StyleSheet.create({
     container: {

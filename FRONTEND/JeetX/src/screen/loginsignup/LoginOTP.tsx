@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Image, TextInput, TouchableOpacity, StatusBar, ScrollView, Platform, Alert, ActivityIndicator, ToastAndroid, KeyboardAvoidingView, Keyboard } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { SafeAreaView } from 'react-native-safe-area-context';
+// import { SafeAreaView } from 'react-native-safe-area-context'; // Original Windows/Native code
+import ScreenWrapper from '../../components/ScreenWrapper'; // Linux/NewArch Fix
+import { useSafeAreaInsets } from 'react-native-safe-area-context'; // Linux/NewArch Fix
+
 import RegisterSvg from '../../assets/register2.svg';
 import { CONFIG, setTokens } from '../../api/config';
 import { getFCMToken } from '../../utils/notificationHelper';
@@ -161,8 +164,16 @@ const LoginOTP = ({ navigation }: any) => {
     };
 
     return (
-        <View style={styles.container}>
-            <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
+        <ScreenWrapper 
+          style={styles.container}
+          statusBarColor="transparent"
+          statusBarStyle="light-content"
+          backgroundColor="#0f172a"
+        >
+            {/* <View style={styles.container}> */} {/* Original code */}
+            {/* <StatusBar translucent backgroundColor="transparent" barStyle="light-content" /> */} {/* Original code */}
+
+
             <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : undefined}
                 style={{ flex: 1 }}
@@ -296,9 +307,11 @@ const LoginOTP = ({ navigation }: any) => {
                     </View>
                 </ScrollView>
             </KeyboardAvoidingView>
-        </View>
+            {/* </View> */} {/* Original code */}
+        </ScreenWrapper>
     );
 };
+
 
 const styles = StyleSheet.create({
     container: {
@@ -447,6 +460,23 @@ const styles = StyleSheet.create({
         color: '#ef4444',
         fontSize: moderateScale(14),
         fontWeight: 'bold',
+    },
+    bypassButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#fef2f2',
+        borderWidth: 1,
+        borderColor: '#ef4444',
+        borderRadius: scale(12),
+        paddingVertical: verticalScale(14),
+        marginTop: verticalScale(20),
+    },
+    bypassText: {
+        color: '#ef4444',
+        marginLeft: scale(12),
+        fontSize: moderateScale(15),
+        fontWeight: '600',
     },
 });
 

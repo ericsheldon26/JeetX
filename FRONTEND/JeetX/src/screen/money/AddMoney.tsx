@@ -3,12 +3,21 @@ import { ScrollView, StyleSheet, Text, View, Image as RNImage } from "react-nati
 
 const Image = (props: any) => <View {...props} style={[{ backgroundColor: 'rgba(255,255,255,0.1)' }, props.style]} ><RNImage {...props} style={{ display: 'none' }} /></View>;
 import LinearGradient from "react-native-linear-gradient";
-import { SafeAreaView } from "react-native-safe-area-context";
+// import { SafeAreaView } from "react-native-safe-area-context"; // Original Windows/Native code
+import ScreenWrapper from "../../components/ScreenWrapper"; // Linux/NewArch Fix
+
 
 const AddMoney = () => {
 
     return (
-        <SafeAreaView style={styles.viewBg}>
+        <ScreenWrapper 
+          style={styles.addMoney}
+          statusBarColor="#010e0f"
+          statusBarStyle="light-content"
+          backgroundColor="#f4f6f6"
+        >
+            {/* <SafeAreaView style={styles.viewBg}> */} {/* Original code */}
+
             <View style={[styles.view, styles.viewLayout]}>
                 <LinearGradient style={[styles.bg, styles.bgLayout]} locations={[0, 1]} colors={['#02121a', '#0d3648']} useAngle={true} angle={-90}>
                     <ScrollView style={[styles.scrollview, styles.bgLayout]} horizontal={true}>
@@ -93,8 +102,11 @@ const AddMoney = () => {
                     </LinearGradient>
                 </View>
             </View>
-        </SafeAreaView>);
+            {/* </SafeAreaView> */} {/* Original code */}
+        </ScreenWrapper>
+    );
 };
+
 
 const styles = StyleSheet.create({
     addMoney: {

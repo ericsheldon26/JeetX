@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, Image, TextInput, TouchableOpacity, StatusBar, ScrollView, Platform, Alert, ActivityIndicator, ToastAndroid, KeyboardAvoidingView } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import LinearGradient from 'react-native-linear-gradient';
-import { SafeAreaView } from 'react-native-safe-area-context';
+// import { SafeAreaView } from 'react-native-safe-area-context'; // Original Windows/Native code
+import ScreenWrapper from '../../components/ScreenWrapper'; // Linux/NewArch Fix
+
 import JeetXSmall from '../../assets/Jeetxsmall.svg';
 import { CONFIG, setTokens } from '../../api/config';
 import { getFCMToken } from '../../utils/notificationHelper';
@@ -83,8 +85,16 @@ const LoginPassword = ({ navigation }: any) => {
     };
 
     return (
-        <SafeAreaView style={styles.container}>
-            <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+        <ScreenWrapper 
+          style={styles.container}
+          statusBarColor="#ffffff"
+          statusBarStyle="dark-content"
+          backgroundColor="#ffffff"
+        >
+            {/* <SafeAreaView style={styles.container}> */} {/* Original code */}
+            {/* <StatusBar barStyle="dark-content" backgroundColor="#ffffff" /> */} {/* Original code */}
+
+
             <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : undefined}
                 style={{ flex: 1 }}
@@ -147,12 +157,28 @@ const LoginPassword = ({ navigation }: any) => {
                                 <Text style={styles.signupLink}>Sign Up</Text>
                             </TouchableOpacity>
                         </View>
+
+                        {/* BYPASS LOGIN - DEVELOPMENT ONLY */}
+                        <TouchableOpacity 
+                            style={[styles.socialButton, { marginTop: 20, borderColor: '#ef4444', backgroundColor: '#fef2f2', borderWidth: 1, borderRadius: 12, paddingVertical: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }]} 
+                            onPress={() => {
+                                console.log('[LoginPassword.tsx] BYPASS LOGIN pressed');
+                                showToast('Bypassing Login...');
+                                navigation.navigate('Main');
+                            }}
+                        >
+                            <FontAwesome name="shield" size={20} color="#ef4444" />
+                            <Text style={{ color: '#ef4444', marginLeft: 12, fontSize: 15, fontWeight: '600' }}>BYPASS LOGIN (DEV)</Text>
+                        </TouchableOpacity>
                     </View>
+
                 </ScrollView>
             </KeyboardAvoidingView>
-        </SafeAreaView>
+            {/* </SafeAreaView> */} {/* Original code */}
+        </ScreenWrapper>
     );
 };
+
 
 const styles = StyleSheet.create({
     container: {
@@ -232,6 +258,17 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: 'bold',
         letterSpacing: 1,
+    },
+    socialButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#ffffff',
+        borderWidth: 1,
+        borderColor: '#e2e8f0',
+        borderRadius: 12,
+        paddingVertical: 14,
+        justifyContent: 'center',
+        marginBottom: 16,
     },
     signupRow: {
         flexDirection: 'row',

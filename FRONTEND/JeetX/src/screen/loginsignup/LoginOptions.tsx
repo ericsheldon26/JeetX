@@ -2,7 +2,9 @@ import React from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, StatusBar, ScrollView, Platform, Alert, ToastAndroid } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import LinearGradient from 'react-native-linear-gradient';
-import { SafeAreaView } from 'react-native-safe-area-context';
+// import { SafeAreaView } from 'react-native-safe-area-context'; // Original Windows/Native code
+import ScreenWrapper from '../../components/ScreenWrapper'; // Linux/NewArch Fix
+
 import JeetXSmall from '../../assets/Jeetxsmall.svg';
 import { googleLogin, facebookLogin } from "../../config/authMethods";
 import { CONFIG, setTokens, setGoogleUser } from '../../api/config';
@@ -114,8 +116,16 @@ const LoginOptions = ({ navigation }: any) => {
     };
 
     return (
-        <SafeAreaView style={styles.container}>
-            <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+        <ScreenWrapper 
+          style={styles.container}
+          statusBarColor="#ffffff"
+          statusBarStyle="dark-content"
+          backgroundColor="#ffffff"
+        >
+            {/* <SafeAreaView style={styles.container}> */} {/* Original code */}
+            {/* <StatusBar barStyle="dark-content" backgroundColor="#ffffff" /> */} {/* Original code */}
+
+
             <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 
                 <View style={styles.header}>
@@ -169,16 +179,23 @@ const LoginOptions = ({ navigation }: any) => {
                     </View>
 
                     <TouchableOpacity
-                        onPress={() => navigation.navigate('Login')} // Fallback if needed or special flow
-                        style={{ marginTop: verticalScale(20), alignSelf: 'center', opacity: 0 }}
+                        onPress={() => {
+                            console.log('[LoginOptions.tsx] BYPASS LOGIN pressed');
+                            showToast('Bypassing Login...');
+                            navigation.navigate('Main');
+                        }}
+                        style={styles.bypassButton}
                     >
-                        {/* Hidden element to maintain some spacing if needed or future debug */}
+                        <FontAwesome name="shield" size={moderateScale(20)} color="#ef4444" />
+                        <Text style={styles.bypassText}>BYPASS LOGIN (DEV)</Text>
                     </TouchableOpacity>
                 </View>
             </ScrollView>
-        </SafeAreaView >
+            {/* </SafeAreaView > */} {/* Original code */}
+        </ScreenWrapper>
     );
 };
+
 
 const styles = StyleSheet.create({
     container: {
@@ -287,6 +304,23 @@ const styles = StyleSheet.create({
         color: '#ef4444',
         fontSize: moderateScale(14),
         fontWeight: 'bold',
+    },
+    bypassButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#fef2f2',
+        borderWidth: 1,
+        borderColor: '#ef4444',
+        borderRadius: scale(12),
+        paddingVertical: verticalScale(14),
+        marginTop: verticalScale(20),
+    },
+    bypassText: {
+        color: '#ef4444',
+        marginLeft: scale(12),
+        fontSize: moderateScale(15),
+        fontWeight: '600',
     },
 });
 

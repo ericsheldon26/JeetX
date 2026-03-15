@@ -1,13 +1,18 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+// import { SafeAreaView } from 'react-native-safe-area-context'; // Original Windows/Native code
+import ScreenWrapper from '../components/ScreenWrapper'; // Linux/NewArch Fix
+
 
 const SettingsScreen = () => {
     return (
-        <SafeAreaView style={styles.container}>
+        /* <SafeAreaView style={styles.container}> */ // Original code
+        <ScreenWrapper style={styles.container}>
             <Text style={styles.title}>Settings Screen</Text>
-        </SafeAreaView>
+        </ScreenWrapper>
+        /* </SafeAreaView> */ // Original code
     );
+
 };
 
 const styles = StyleSheet.create({

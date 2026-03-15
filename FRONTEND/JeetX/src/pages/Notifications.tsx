@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, StatusBar, FlatList, ActivityIndicator } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+// import { SafeAreaView } from 'react-native-safe-area-context'; // Original Windows/Native code
+import ScreenWrapper from '../components/ScreenWrapper'; // Linux/NewArch Fix
+
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { getNotifications, markAsRead, markAllAsRead, deleteNotification } from '../api/notificationApi';
 import { scale, verticalScale, moderateScale, hp, wp } from '../utils/responsive';
@@ -159,11 +161,20 @@ const Notifications = ({ navigation }: any) => {
     };
 
     return (
-        <View style={styles.container}>
-            <StatusBar barStyle="light-content" backgroundColor="#02121a" />
+        <ScreenWrapper 
+          style={styles.container} 
+          backgroundColor="#02121a" 
+          statusBarColor="#02121a" 
+          statusBarStyle="light-content"
+          disableBottomInset={true}
+        >
+            {/* <View style={styles.container}> */} {/* Original code */}
+            {/* <StatusBar barStyle="light-content" backgroundColor="#02121a" /> */} {/* Original code */}
+            {/* <SafeAreaView edges={['top']} style={styles.headerSafeArea}> */} {/* Original code */}
 
-            {/* Header & Tabs Container */}
-            <SafeAreaView edges={['top']} style={styles.headerSafeArea}>
+
+            <View style={styles.headerSafeArea}>
+
                 <View style={styles.header}>
                     <TouchableOpacity onPress={() => navigation?.goBack()} style={styles.backButton}>
                         <FontAwesome name="arrow-left" size={20} color="#ffffff" />
@@ -198,7 +209,11 @@ const Notifications = ({ navigation }: any) => {
                         keyExtractor={item => item.value}
                     />
                 </View>
-            </SafeAreaView>
+            </View>
+            {/* </SafeAreaView> */} {/* Original code */}
+
+
+
 
             {/* Content Body */}
             <View style={styles.contentBody}>
@@ -224,9 +239,12 @@ const Notifications = ({ navigation }: any) => {
                     />
                 )}
             </View>
-        </View>
+            {/* </View> */} {/* Original code */}
+        </ScreenWrapper>
     );
 };
+
+
 
 const styles = StyleSheet.create({
     container: {

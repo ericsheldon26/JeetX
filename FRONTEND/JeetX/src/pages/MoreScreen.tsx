@@ -2,7 +2,9 @@
 import React from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, StatusBar } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import { SafeAreaView } from 'react-native-safe-area-context';
+// import { SafeAreaView } from 'react-native-safe-area-context'; // Original Windows/Native code
+import ScreenWrapper from '../components/ScreenWrapper'; // Linux/NewArch Fix
+
 
 const MoreScreen = () => {
     const options = [
@@ -33,8 +35,17 @@ const MoreScreen = () => {
     );
 
     return (
-        <SafeAreaView style={styles.container}>
-            <StatusBar barStyle="light-content" backgroundColor="#0f172a" />
+        <ScreenWrapper 
+          style={styles.container} 
+          statusBarColor="#0f172a" 
+          statusBarStyle="light-content"
+          backgroundColor="#0f172a"
+        >
+            {/* <SafeAreaView style={styles.container}> */} {/* Original code */}
+            {/* <StatusBar barStyle="light-content" backgroundColor="#0f172a" /> */} {/* Original code */}
+
+
+
 
             <View style={styles.header}>
                 <Text style={styles.headerTitle}>More</Text>
@@ -51,9 +62,11 @@ const MoreScreen = () => {
                 <Text style={styles.versionText}>Version 1.0.0</Text>
                 <Text style={styles.footerText}>Made with ❤️ for Gamers</Text>
             </View>
-        </SafeAreaView>
+            {/* </SafeAreaView> */} {/* Original code */}
+        </ScreenWrapper>
     );
 };
+
 
 const styles = StyleSheet.create({
     container: {

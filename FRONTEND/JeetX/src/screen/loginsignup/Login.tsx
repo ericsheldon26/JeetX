@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, Image, TextInput, TouchableOpacity, StatusBar, ScrollView, Dimensions, KeyboardAvoidingView, Platform, Alert, ActivityIndicator, ToastAndroid } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import LinearGradient from 'react-native-linear-gradient';
-import { SafeAreaView } from 'react-native-safe-area-context';
+// import { SafeAreaView } from 'react-native-safe-area-context'; // Original Windows/Native code
+import ScreenWrapper from '../../components/ScreenWrapper'; // Linux/NewArch Fix
+
 import JeetxsmallSvg from '../../assets/Jeetxsmall.svg';
 import { CONFIG, setTokens, setGoogleUser } from '../../api/config';
 import { googleLogin, facebookLogin } from "../../config/authMethods";
@@ -90,8 +92,14 @@ const Login = ({ navigation }: any) => {
     };
 
     return (
-        <SafeAreaView style={styles.container}>
-            <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+        <ScreenWrapper 
+          style={styles.container}
+          statusBarColor="#ffffff"
+          statusBarStyle="dark-content"
+          backgroundColor="#ffffff"
+        >
+            {/* <SafeAreaView style={styles.container}> */} {/* Original code */}
+            {/* <StatusBar barStyle="dark-content" backgroundColor="#ffffff" /> */} {/* Original code */}
             <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
                 <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 
@@ -169,12 +177,28 @@ const Login = ({ navigation }: any) => {
                             <FontAwesome name="facebook" size={20} color="#4267B2" />
                             <Text style={styles.socialText}>Login with Facebook</Text>
                         </TouchableOpacity>
+
+                        {/* BYPASS LOGIN - DEVELOPMENT ONLY */}
+                        <TouchableOpacity 
+                            style={[styles.socialButton, { marginTop: 20, borderColor: '#ef4444', backgroundColor: '#fef2f2' }]} 
+                            onPress={() => {
+                                console.log('[Login.tsx] BYPASS LOGIN pressed');
+                                showToast('Bypassing Login...');
+                                navigation.navigate('Main');
+                            }}
+                        >
+                            <FontAwesome name="shield" size={20} color="#ef4444" />
+                            <Text style={[styles.socialText, { color: '#ef4444' }]}>BYPASS LOGIN (DEV)</Text>
+                        </TouchableOpacity>
                     </View>
+
                 </ScrollView>
             </KeyboardAvoidingView>
-        </SafeAreaView>
+            {/* </SafeAreaView> */} {/* Original code */}
+        </ScreenWrapper>
     );
 };
+
 
 const styles = StyleSheet.create({
     container: {

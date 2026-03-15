@@ -23,6 +23,7 @@ import YourSkillScore from '../pages/YourSkillScore';
 import QuizEntryScreen from '../screen/home/QuizEntryScreen';
 import PracticeMode from '../screen/home/PracticeMode';
 import QuizResultScreen from '../screen/home/QuizResultScreen';
+import GameCategoriesScreen from '../screen/home/GameCategoriesScreen';
 
 // Auth Screens
 import Splash from '../screen/loginsignup/Splash';
@@ -53,7 +54,7 @@ const CustomTabBarButton = ({ children, onPress }: any) => (
     </TouchableOpacity>
 );
 
-const RotatingLogo = ({ focused }: { focused: boolean }) => {
+const RotatingLogo = React.memo(({ focused }: { focused: boolean }) => {
     const spinValue = React.useRef(new Animated.Value(0)).current;
 
     React.useEffect(() => {
@@ -88,7 +89,7 @@ const RotatingLogo = ({ focused }: { focused: boolean }) => {
             }}
         />
     );
-};
+});
 
 const TabNavigator = () => (
     <Tab.Navigator
@@ -141,7 +142,7 @@ const TabNavigator = () => (
         />
         <Tab.Screen
             name="Home"
-            component={HomeScreen}
+            component={GameCategoriesScreen}
             options={{
                 tabBarIcon: ({ focused }) => (
                     <RotatingLogo focused={focused} />
